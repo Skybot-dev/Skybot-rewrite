@@ -73,11 +73,7 @@ class Skybot(commands.AutoShardedBot):
 
     async def on_command_error(self, ctx : commands.Context, exception):
         if isinstance(exception, commands.CommandNotFound):
-            return await ctx.message.edit(content=ctx.message.content + " `Not Found`")
-            try:
-                return await ctx.message.edit(content=ctx.message.content + " `Not Found`")
-            except:
-                return await ctx.send("`Command not found`", delete_after=3)
+            return await ctx.send("`Command not found`", delete_after=3)
             
         if isinstance(exception, commands.NoPrivateMessage):
             return await ctx.send("This command can't be used in a private chat.")
