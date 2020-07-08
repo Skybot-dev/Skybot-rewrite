@@ -1,0 +1,6 @@
+motor
+loguru
+pymongo
+discord.py
+dnspython
+statuspageio

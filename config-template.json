@@ -1,0 +1,10 @@
+{
+    "token" : "",
+    "default_prefix" : "!",
+    "database" : {
+        "username" : "",
+        "password" : "",
+        "address" : "localhost",
+        "default_db" : ""
+    }
+}
