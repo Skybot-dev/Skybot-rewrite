@@ -19,7 +19,7 @@ class Skybot(commands.AutoShardedBot):
         logger.info("Connecting to Database...")
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
-        self.settings_db = self.db_client["settings"]
+        self.db = self.db_client["skybot"]
         self.remove_command("help")
         self.load_cogs()        
         
@@ -28,7 +28,7 @@ class Skybot(commands.AutoShardedBot):
         if not message.guild:
             return commands.when_mentioned_or(get_config()["default_prefix"])(self, message)
 
-        prefix = await self.settings_db["prefixes"].find_one({"guild_id" : message.guild.id})
+        prefix = await self.db["prefixes"].find_one({"guild_id" : message.guild.id})
         if prefix is not None:
             return commands.when_mentioned_or(prefix["prefix"])(self, message)
         else:
@@ -57,6 +57,7 @@ class Skybot(commands.AutoShardedBot):
             return await ctx.send("This command can't be used in a private chat.")
         if isinstance(exception, commands.CommandOnCooldown):
             return await ctx.send("this command is on cooldown, please wait " + str(exception.retry_after) + " more seconds!")
+        
             
         #await logging.create_incident(self.statuspage, str(exception), logging.Componenets.CORE)  
         

@@ -48,7 +48,7 @@ class Help(commands.Cog):
             if name != "Admin" and name != "Help" : cog : commands.Cog = self.bot.get_cog(name) 
             else: continue
             list_embed.add_field(name=name, value=", ".join(["`" + command.name + "`" for command in cog.get_commands()]), inline=True)
-
+        list_embed.add_field(name="Links", value="[Apply as Dev](https://discord.gg/SQebkz9) | [Vote](https://top.gg/bot/630106665387032576/vote) | [Invite the Bot to your server](https://discordapp.com/oauth2/authorize?client_id=630106665387032576&scope=bot&permissions=8) | [Support Server](https://discord.gg/hmmfXud) | [Todos](https://trello.com/b/2yBAtx82/skybot-rewrite)", inline=False)
         await ctx.send(embed=list_embed)
 
     @help.command()
