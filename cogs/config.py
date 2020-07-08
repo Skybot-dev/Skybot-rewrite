@@ -8,7 +8,7 @@ from utils.util import get_config
 class Config(commands.Cog):
     def __init__(self, bot):
         self.bot : commands.AutoShardedBot = bot
-        self.bot.loop.create_task(logging.set_status(self.bot.statuspage, logging.Componenets.CONFIG, logging.Status.OPERATIONAL))
+        
 
 
     @commands.Cog.listener()
@@ -16,7 +16,7 @@ class Config(commands.Cog):
         pass
 
     def cog_unload(self):
-        self.bot.loop.create_task(logging.set_status(self.bot.statuspage, logging.Componenets.CONFIG, logging.Status.MAJOR_OUTAGE))
+        pass
 
     @commands.has_permissions(administrator=True)
     @commands.guild_only()

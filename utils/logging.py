@@ -42,8 +42,6 @@ class Status():
 
 def init_statuspage():
     statuspage = statuspageio.Client(api_key="61adc39d-1489-4aba-a033-f15667fd96cc", page_id="h28j1dn1s14w", organization_id="pleasenoerror")
-    for incident in statuspage.incidents.list():
-        statuspage.incidents.delete(incident["id"])
     return statuspage
 
 async def set_status(statuspage : statuspageio.Client, component_id : str, status : str):
@@ -52,7 +50,7 @@ async def set_status(statuspage : statuspageio.Client, component_id : str, statu
 
 async def create_incident(statuspage : statuspageio.Client, name : str, components : list):
     statuspage.incidents.create(name=name, components=components)
-    logger.warning(f"Created new incident with the name {name}!")
+    logger.warning(f"Created new incident with the name {name} for {components[0]} !")
 
 
 

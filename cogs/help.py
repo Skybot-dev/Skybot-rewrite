@@ -6,15 +6,13 @@ from utils import logging
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot : commands.AutoShardedBot = bot
-        self.bot.loop.create_task(logging.set_status(self.bot.statuspage, logging.Componenets.HELP, logging.Status.OPERATIONAL))
 
     @commands.Cog.listener()
     async def on_ready(self):
         pass
     
     def cog_unload(self):
-        self.bot.loop.create_task(logging.set_status(self.bot.statuspage, logging.Componenets.HELP, logging.Status.MAJOR_OUTAGE))
-
+        pass
 
     @commands.cooldown(3, 5, commands.BucketType.user)
     @commands.group(name="help", description="List commands and command info.", aliases=["cmds"], usage="[Category/Command]")
@@ -71,7 +69,7 @@ class Help(commands.Cog):
     async def show_command(self, ctx, arg):
         command : commands.Command = self.bot.get_command(arg)
         
-        command_embed = Embed(title=command.name.capitalize(), bot=self.bot, user=ctx.author)
+        command_embed = Embed(title=ctx.prefix + command.name.capitalize(), bot=self.bot, user=ctx.author)
         await command_embed.set_requested_by_footer()
 
         if command.description == "": description = "No Description."
