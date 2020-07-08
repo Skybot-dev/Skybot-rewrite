@@ -4,7 +4,7 @@
     "database" : {
         "username" : "",
         "password" : "",
-        "address" : "localhost",
+        "address" : "localhost:27017",
         "default_db" : ""
     },
     "staff_role" : 1234

@@ -19,7 +19,7 @@ class Skybot(commands.AutoShardedBot):
         logger.info("Connecting to Database...")
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
-        self.admin_db = self.db_client["admin"]
+        self.admin_db = self.db_client["management"]
         self.users_db = self.db_client["users"]
         self.guilds_db = self.db_client["guilds"]
         self.remove_command("help")
@@ -59,6 +59,7 @@ class Skybot(commands.AutoShardedBot):
             return await ctx.send("This command can't be used in a private chat.")
         if isinstance(exception, commands.CommandOnCooldown):
             return await ctx.send("this command is on cooldown, please wait " + str(exception.retry_after) + " more seconds!")
+        logger.exception(exception)
         
             
         #await logging.create_incident(self.statuspage, str(exception), logging.Componenets.CORE)  
