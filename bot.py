@@ -19,7 +19,9 @@ class Skybot(commands.AutoShardedBot):
         logger.info("Connecting to Database...")
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
-        self.db = self.db_client["skybot"]
+        self.admin_db = self.db_client["admin"]
+        self.users_db = self.db_client["users"]
+        self.guilds_db = self.db_client["guilds"]
         self.remove_command("help")
         self.load_cogs()        
         
@@ -28,7 +30,7 @@ class Skybot(commands.AutoShardedBot):
         if not message.guild:
             return commands.when_mentioned_or(get_config()["default_prefix"])(self, message)
 
-        prefix = await self.db["prefixes"].find_one({"guild_id" : message.guild.id})
+        prefix = await self.guilds_db["prefixes"].find_one({"guild_id" : message.guild.id})
         if prefix is not None:
             return commands.when_mentioned_or(prefix["prefix"])(self, message)
         else:
