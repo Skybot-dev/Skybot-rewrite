@@ -53,8 +53,32 @@ class Skybot(commands.AutoShardedBot):
         await logging.set_status(self.statuspage, logging.Componenets.CORE, logging.Status.OPERATIONAL)
         logger.info("Skybot ready.")
 
-    
-    async def on_command_error(self, ctx, exception):
+
+    async def on_message(self, message):
+        await self.wait_until_ready()
+
+        if not self.is_ready() : return
+
+        await self.process_commands(message)
+
+    async def on_message_edit(self, before, after):
+        await self.wait_until_ready()
+
+        await self.process_commands(after)
+
+    async def on_command_completion(self, ctx):
+        if not ctx.command_failed:
+            pass
+            #TODO count the command use.
+
+    async def on_command_error(self, ctx : commands.Context, exception):
+        if isinstance(exception, commands.CommandNotFound):
+            return await ctx.message.edit(content=ctx.message.content + " `Not Found`")
+            try:
+                return await ctx.message.edit(content=ctx.message.content + " `Not Found`")
+            except:
+                return await ctx.send("`Command not found`", delete_after=3)
+            
         if isinstance(exception, commands.NoPrivateMessage):
             return await ctx.send("This command can't be used in a private chat.")
         if isinstance(exception, commands.CommandOnCooldown):
