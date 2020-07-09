@@ -14,7 +14,7 @@ class Help(commands.Cog):
     def cog_unload(self):
         pass
 
-    @commands.cooldown(3, 5, commands.BucketType.user)
+    @commands.cooldown(3, 5, commands.BucketType.channel)
     @commands.group(name="help", description="List commands and command info.", aliases=["cmds"], usage="[Category/Command]")
     async def help(self, ctx : commands.Context, arg=None):
         if arg is None or arg.lower() == "list":

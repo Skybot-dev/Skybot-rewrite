@@ -7,5 +7,10 @@
         "address" : "localhost:27017",
         "default_db" : ""
     },
+    "statuspage" : {
+        "enabled" : true,
+        "api_key" : "",
+        "page_id" : ""
+    },
     "staff_role" : 1234
 }
