@@ -7,5 +7,20 @@
         "address" : "localhost",
         "default_db" : ""
     },
-    "staff_role" : 1234
+    "staff_role" : 1234,
+    "support_guild": {
+	"ID": 0,
+	"invite_link": "https://discord.com/invite/inviteCode",
+    "suggest_channel": 0,
+    "log_channel": 0,
+    "stats": {
+        "channel": 0,
+        "message": 0
+    }
+    },
+    "trello": {
+        "api_key": "",
+        "api_secret": ""
+    },
+    "bot_inite": ""
 }
