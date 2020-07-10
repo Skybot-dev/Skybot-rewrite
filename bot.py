@@ -15,14 +15,19 @@ class Skybot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(self.get_prefix, case_insensitive=True)
         logging.init_logging()
-        self.statuspage = logging.init_statuspage()
-        logger.info("Connecting to Database...")
+
+        if get_config()["statuspage"]["enabled"]:
+            self.statuspage = logging.init_statuspage()
+
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
-        self.admin_db = self.db_client["admin"]
+
+        self.admin_db = self.db_client["management"]
         self.users_db = self.db_client["users"]
         self.guilds_db = self.db_client["guilds"]
+
         self.remove_command("help")
+
         self.load_cogs()        
         
 
@@ -50,18 +55,43 @@ class Skybot(commands.AutoShardedBot):
 
 
     async def on_ready(self):
-        await logging.set_status(self.statuspage, logging.Componenets.CORE, logging.Status.OPERATIONAL)
+        if self.statuspage:
+            await logging.set_status(self.statuspage, logging.Componenets.CORE, logging.Status.OPERATIONAL)
         logger.info("Skybot ready.")
 
+
+    async def on_message(self, message):
+
+        if not self.is_ready() : return
+
+        await self.process_commands(message)
+
+    async def on_message_edit(self, before, after):
+        await self.wait_until_ready()
+
+        await self.process_commands(after)
+        
+    async def on_command_completion(self, ctx):
+        if not ctx.command_failed:
+            adminstats = self.admin_db["adminstats"]
+
+            result = await adminstats.update_one({"name" : ctx.command.name}, {"$inc" : {"uses" : 1}})
+            if result.modified_count == 0:
+                await adminstats.insert_one({"name" : ctx.command.name, "uses" : 0})
     
-    async def on_command_error(self, ctx, exception):
+
+    async def on_command_error(self, ctx : commands.Context, exception):
+        if isinstance(exception, commands.CommandNotFound):
+            return await ctx.send("`Command not found`", delete_after=3)
         if isinstance(exception, commands.NoPrivateMessage):
             return await ctx.send("This command can't be used in a private chat.")
         if isinstance(exception, commands.CommandOnCooldown):
-            return await ctx.send("this command is on cooldown, please wait " + str(exception.retry_after) + " more seconds!")
-        
-            
-        #await logging.create_incident(self.statuspage, str(exception), logging.Componenets.CORE)  
+            return await ctx.send("This command is on cooldown, please wait " + str(round(exception.retry_after, 2)) + " more seconds!")
+        logger.exception(exception)
+        if self.statuspage:
+            cog_name = ctx.cog.qualified_name
+            components = dict(map(reversed, logging.Componenets.DICT.items()))
+            await logging.create_incident(self.statuspage, str(exception), [components[cog_name.upper()]])  
         
 
 if __name__ == "__main__":

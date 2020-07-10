@@ -1,6 +1,7 @@
 import logging
 import statuspageio
 from loguru import logger
+from utils.util import get_config
 
 class InterceptHandler(logging.Handler):
     def emit(self, record):
@@ -41,9 +42,7 @@ class Status():
     MAJOR_OUTAGE = "major_outage"
 
 def init_statuspage():
-    statuspage = statuspageio.Client(api_key="61adc39d-1489-4aba-a033-f15667fd96cc", page_id="h28j1dn1s14w", organization_id="pleasenoerror")
-    for incident in statuspage.incidents.list():
-        statuspage.incidents.delete(incident["id"])
+    statuspage = statuspageio.Client(api_key=get_config()["statuspage"]["api_key"], page_id=get_config()["statuspage"]["page_id"], organization_id="pleasenoerror")
     return statuspage
 
 async def set_status(statuspage : statuspageio.Client, component_id : str, status : str):
@@ -52,7 +51,7 @@ async def set_status(statuspage : statuspageio.Client, component_id : str, statu
 
 async def create_incident(statuspage : statuspageio.Client, name : str, components : list):
     statuspage.incidents.create(name=name, components=components)
-    logger.warning(f"Created new incident with the name {name}!")
+    logger.warning(f"Created new incident with the name {name} for {Componenets.DICT[components[0]]} !")
 
 
 

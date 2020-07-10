@@ -6,17 +6,15 @@ from utils import logging
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot : commands.AutoShardedBot = bot
-        self.bot.loop.create_task(logging.set_status(self.bot.statuspage, logging.Componenets.HELP, logging.Status.OPERATIONAL))
 
     @commands.Cog.listener()
     async def on_ready(self):
         pass
     
     def cog_unload(self):
-        self.bot.loop.create_task(logging.set_status(self.bot.statuspage, logging.Componenets.HELP, logging.Status.MAJOR_OUTAGE))
+        pass
 
-
-    @commands.cooldown(3, 5, commands.BucketType.user)
+    @commands.cooldown(3, 5, commands.BucketType.channel)
     @commands.group(name="help", description="List commands and command info.", aliases=["cmds"], usage="[Category/Command]")
     async def help(self, ctx : commands.Context, arg=None):
         if arg is None or arg.lower() == "list":
@@ -47,6 +45,7 @@ class Help(commands.Cog):
         for name in self.bot.cogs:
             if name != "Admin" and name != "Help" : cog : commands.Cog = self.bot.get_cog(name) 
             else: continue
+            if not cog.get_commands(): continue
             list_embed.add_field(name=name, value=", ".join(["`" + command.name + "`" for command in cog.get_commands()]), inline=True)
         list_embed.add_field(name="Links", value="[Apply as Dev](https://discord.gg/SQebkz9) | [Vote](https://top.gg/bot/630106665387032576/vote) | [Invite the Bot to your server](https://discordapp.com/oauth2/authorize?client_id=630106665387032576&scope=bot&permissions=8) | [Support Server](https://discord.gg/hmmfXud) | [Todos](https://trello.com/b/2yBAtx82/skybot-rewrite)", inline=False)
         await ctx.send(embed=list_embed)
@@ -71,7 +70,7 @@ class Help(commands.Cog):
     async def show_command(self, ctx, arg):
         command : commands.Command = self.bot.get_command(arg)
         
-        command_embed = Embed(title=command.name.capitalize(), bot=self.bot, user=ctx.author)
+        command_embed = Embed(title=ctx.prefix + command.name.capitalize(), bot=self.bot, user=ctx.author)
         await command_embed.set_requested_by_footer()
 
         if command.description == "": description = "No Description."

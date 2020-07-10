@@ -1,4 +1,6 @@
 import os
+import time
+import copy
 import discord
 from loguru import logger
 from utils.util import is_staff
@@ -25,6 +27,20 @@ class Admin(commands.Cog):
                     self.bot.load_extension(f"cogs.{filename[:-3]}")
                     logger.info(f"loaded cogs.{filename[:-3]}")
         await ctx.message.add_reaction("👌")
+
+    @commands.check(is_staff)
+    @commands.command()
+    async def timeit(self, ctx, *, command: str):
+        msg = copy.copy(ctx.message)
+        msg.content = ctx.prefix + command
+
+        new_ctx = await self.bot.get_context(msg, cls=commands.Context)
+
+        start = time.time()
+        await new_ctx.reinvoke()
+        end = time.time()
+
+        await ctx.send(f'**{ctx.prefix}{new_ctx.command.qualified_name}** took **{end - start:.2f}s** to run')
         
 
 
