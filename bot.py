@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 from database.init import init_client
-from utils.util import get_config
+from utils.util import get_config, trelloinit
 from utils import logging
 
 
@@ -18,6 +18,10 @@ class Skybot(commands.AutoShardedBot):
 
         if get_config()["statuspage"]["enabled"]:
             self.statuspage = logging.init_statuspage()
+        else:
+            self.statuspage = False
+        # self.statuspage = False
+        self.trelloBoard = trelloinit()
 
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
