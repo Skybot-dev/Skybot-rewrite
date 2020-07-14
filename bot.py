@@ -1,6 +1,6 @@
 import os
 from loguru import logger
-
+import traceback
 import discord
 from discord.ext import commands
 
@@ -19,24 +19,19 @@ class Skybot(commands.AutoShardedBot):
         if get_config()["statuspage"]["enabled"]:
             self.statuspage = logging.init_statuspage()
         else:
-<<<<<<< HEAD
             self.statuspage = False
-        # self.statuspage = False
         self.trelloBoard = trelloinit()
 
-=======
-            self.statuspage = None
->>>>>>> 1ec149cf6f2ee6287d899705ab4d849bfaf37207
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
 
         self.admin_db = self.db_client["management"]
         self.users_db = self.db_client["users"]
         self.guilds_db = self.db_client["guilds"]
-
+        self.scammer_db = self.db_client["scammer"]
         self.remove_command("help")
 
-        self.load_cogs()        
+        self.load_cogs()
         
 
     async def get_prefix(self, message):
@@ -95,6 +90,8 @@ class Skybot(commands.AutoShardedBot):
             return await ctx.send("This command can't be used in a private chat.")
         if isinstance(exception, commands.CommandOnCooldown):
             return await ctx.send("This command is on cooldown, please wait " + str(round(exception.retry_after, 2)) + " more seconds!")
+        traceback_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
+        logger.exception("".join(traceback_lines))
         logger.exception(exception)
         if self.statuspage:
             cog_name = ctx.cog.qualified_name

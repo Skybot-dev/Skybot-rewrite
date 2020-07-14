@@ -65,15 +65,19 @@ class Misc(commands.Cog, name="Misc"):
     async def view(self, ctx, id:str):
         await ctx.send(embed=await self.view_suggestion(ctx, id))
     
-    @suggestion.command()
+    @suggestion.command(name="list")
     @commands.check(is_staff)
-    async def list(self, ctx):
+    async def slist(self, ctx):
+        # try:
         embeds = []
         async for i in self.bot.admin_db["suggestions"].find({}):
+            #embeds.append(await self.view_suggestion(ctx, str(i["_id"])))
             embeds.append(await self.view_suggestion(ctx, str(i["_id"])))
         msg = await ctx.send(embed=embeds[0])
         pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)
         await pages.start()
+        # except Exception as e:
+        #     await ctx.send(e)
     
     @suggestion.command()
     @commands.check(is_staff)
