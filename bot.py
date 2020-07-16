@@ -52,8 +52,6 @@ class Skybot(commands.AutoShardedBot):
 
 
     async def on_ready(self):
-        if self.statuspage:
-            await logging.set_status(self.statuspage, logging.Componenets.CORE, logging.Status.OPERATIONAL)
         logger.info("Skybot ready.")
 
 
@@ -87,10 +85,7 @@ class Skybot(commands.AutoShardedBot):
         traceback_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
         logger.exception("".join(traceback_lines))
         logger.exception(exception)
-        if self.statuspage:
-            cog_name = ctx.cog.qualified_name
-            components = dict(map(reversed, logging.Componenets.DICT.items()))
-            await logging.create_incident(self.statuspage, str(exception), [components[cog_name.upper()]])  
+
         
 
 if __name__ == "__main__":
