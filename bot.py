@@ -16,12 +16,6 @@ class Skybot(commands.AutoShardedBot):
         super().__init__(self.get_prefix, case_insensitive=True)
         logging.init_logging()
 
-        if get_config()["statuspage"]["enabled"]:
-            self.statuspage = logging.init_statuspage()
-        else:
-            self.statuspage = False
-        self.trelloBoard = trelloinit()
-
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
 
