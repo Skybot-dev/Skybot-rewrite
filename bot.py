@@ -16,10 +16,6 @@ class Skybot(commands.AutoShardedBot):
         super().__init__(self.get_prefix, case_insensitive=True)
         logging.init_logging()
 
-        if get_config()["statuspage"]["enabled"]:
-            self.statuspage = logging.init_statuspage()
-        else:
-            self.statuspage = None
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
 
@@ -56,8 +52,6 @@ class Skybot(commands.AutoShardedBot):
 
 
     async def on_ready(self):
-        if self.statuspage:
-            await logging.set_status(self.statuspage, logging.Componenets.CORE, logging.Status.OPERATIONAL)
         logger.info("Skybot ready.")
 
 
@@ -89,10 +83,7 @@ class Skybot(commands.AutoShardedBot):
         if isinstance(exception, commands.CommandOnCooldown):
             return await ctx.send("This command is on cooldown, please wait " + str(round(exception.retry_after, 2)) + " more seconds!")
         logger.exception(exception)
-        if self.statuspage:
-            cog_name = ctx.cog.qualified_name
-            components = dict(map(reversed, logging.Componenets.DICT.items()))
-            await logging.create_incident(self.statuspage, str(exception), [components[cog_name.upper()]])  
+
         
 
 if __name__ == "__main__":

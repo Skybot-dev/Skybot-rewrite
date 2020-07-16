@@ -1,5 +1,5 @@
 import logging
-import statuspageio
+# import statuspageio
 from loguru import logger
 from utils.util import get_config
 
@@ -28,30 +28,30 @@ def init_logging():
 
 
 
-class Componenets():
-    CORE = "f3wr6lvvv4wr"
-    HELP = "69x154c10cy9"
-    CONFIG = "z56sbn5tdzq0"
-    DICT = {"f3wr6lvvv4wr" : "CORE", "69x154c10cy9" : "HELP", "z56sbn5tdzq0" : "CONFIG"}
+# class Componenets():
+#     CORE = "f3wr6lvvv4wr"
+#     HELP = "69x154c10cy9"
+#     CONFIG = "z56sbn5tdzq0"
+#     DICT = {"f3wr6lvvv4wr" : "CORE", "69x154c10cy9" : "HELP", "z56sbn5tdzq0" : "CONFIG"}
 
-class Status():
-    OPERATIONAL = "operational"
-    MAINTENANCE = "under_maintenance"
-    DEGRADED_PERFORMANCE = "degraded_performance"
-    PARTIAL_OUTAGE = "partial_outage"
-    MAJOR_OUTAGE = "major_outage"
+# class Status():
+#     OPERATIONAL = "operational"
+#     MAINTENANCE = "under_maintenance"
+#     DEGRADED_PERFORMANCE = "degraded_performance"
+#     PARTIAL_OUTAGE = "partial_outage"
+#     MAJOR_OUTAGE = "major_outage"
 
-def init_statuspage():
-    statuspage = statuspageio.Client(api_key=get_config()["statuspage"]["api_key"], page_id=get_config()["statuspage"]["page_id"], organization_id="pleasenoerror")
-    return statuspage
+# def init_statuspage():
+#     statuspage = statuspageio.Client(api_key=get_config()["statuspage"]["api_key"], page_id=get_config()["statuspage"]["page_id"], organization_id="pleasenoerror")
+#     return statuspage
 
-async def set_status(statuspage : statuspageio.Client, component_id : str, status : str):
-    statuspage.components.update(component_id, status=status)
-    logger.info(f"{Componenets.DICT[component_id]} component status set to {status}!")
+# async def set_status(statuspage : statuspageio.Client, component_id : str, status : str):
+#     statuspage.components.update(component_id, status=status)
+#     logger.info(f"{Componenets.DICT[component_id]} component status set to {status}!")
 
-async def create_incident(statuspage : statuspageio.Client, name : str, components : list):
-    statuspage.incidents.create(name=name, components=components)
-    logger.warning(f"Created new incident with the name {name} for {Componenets.DICT[components[0]]} !")
+# async def create_incident(statuspage : statuspageio.Client, name : str, components : list):
+#     statuspage.incidents.create(name=name, components=components)
+#     logger.warning(f"Created new incident with the name {name} for {Componenets.DICT[components[0]]} !")
 
 
 
