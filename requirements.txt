@@ -3,6 +3,5 @@ loguru
 pymongo
 discord.py
 dnspython
-statuspageio
 EZPaginator
 py-trello
