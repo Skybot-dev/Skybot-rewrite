@@ -13,6 +13,7 @@
 	"invite_link": "https://discord.com/invite/inviteCode",
     "suggest_channel": 0,
     "log_channel": 0,
+    "report_channel": 0,
     "stats": {
         "channel": 0,
         "message": 0
@@ -21,6 +22,9 @@
     "trello": {
         "api_key": "",
         "api_secret": ""
+    },
+    "statuspage": {
+        "enabled": false
     },
     "bot_inite": ""
 }
