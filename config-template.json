@@ -1,5 +1,6 @@
 {
     "token" : "",
+    "api_keys" : [],
     "default_prefix" : "!",
     "database" : {
         "username" : "",
@@ -23,8 +24,5 @@
         "api_key": "",
         "api_secret": ""
     },
-    "statuspage": {
-        "enabled": false
-    },
-    "bot_inite": ""
+    "bot_invite": ""
 }

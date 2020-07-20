@@ -1,6 +1,6 @@
 import discord
 from utils import logging
-from utils.util import is_staff, uuid_from_name, get_config
+from utils.util import is_staff, get_config
 from inspect import Parameter
 from discord.ext import commands, tasks
 from utils.embed import Embed

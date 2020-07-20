@@ -5,7 +5,12 @@ from discord.ext import commands
 from utils.util import get_config
 
 
-class Config(commands.Cog):
+async def on_user_verified(ctx):
+    print("User verified")
+    #TODO make this do stuff lel
+
+
+class ServerConfig(commands.Cog):
     def __init__(self, bot):
         self.bot : commands.AutoShardedBot = bot
         
@@ -50,5 +55,6 @@ class Config(commands.Cog):
             return await ctx.send("My prefix here is `" + prefix["prefix"] + "`")
         return await ctx.send("My prefix here is `" + get_config()["default_prefix"] + "`")
 
+
 def setup(bot):
-    bot.add_cog(Config(bot))
+    bot.add_cog(ServerConfig(bot))
