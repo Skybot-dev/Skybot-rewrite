@@ -16,7 +16,7 @@ class Misc(commands.Cog, name="Misc"):
     """Miscellaneous commands"""
     def __init__(self, bot):
         self.bot = bot 
-        self.my_board = self.bot.trelloBoard
+        self.my_board = self.bot.trello_board
         self.my_lists = self.my_board.list_lists()
         self.stats.start()
     

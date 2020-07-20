@@ -6,6 +6,7 @@ from discord.ext import commands
 
 from database.init import init_client
 from utils.util import get_config, trelloinit
+from utils.skypy import exceptions
 from utils import logging
 
 
@@ -19,11 +20,17 @@ class Skybot(commands.AutoShardedBot):
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
 
+        self.trello_board = trelloinit()
+
         self.admin_db = self.db_client["management"]
         self.users_db = self.db_client["users"]
         self.guilds_db = self.db_client["guilds"]
         self.scammer_db = self.db_client["scammer"]
         self.remove_command("help")
+        
+        self.api_keys = get_config()["api_keys"]
+        if not self.api_keys:
+            logger.warning("PLEASE SET AT LEAST ON API KEY, ELSE THE BOT WON'T WORK.")
 
         self.load_cogs()
         
@@ -79,9 +86,24 @@ class Skybot(commands.AutoShardedBot):
         if isinstance(exception, commands.CommandNotFound):
             return await ctx.send("`Command not found`", delete_after=3)
         if isinstance(exception, commands.NoPrivateMessage):
-            return await ctx.send("This command can't be used in a private chat.")
+            return await ctx.send("This command can't be used in a private chat.", delete_after=7)
         if isinstance(exception, commands.CommandOnCooldown):
-            return await ctx.send("This command is on cooldown, please wait " + str(round(exception.retry_after, 2)) + " more seconds!")
+            return await ctx.send("This command is on cooldown, please wait " + str(round(exception.retry_after, 2)) + " more seconds!", delete_after=7)
+        if isinstance(exception, commands.MissingRequiredArgument):
+            await ctx.send("You are Missing required arguments!", delete_after=7)
+            return await ctx.invoke(self.get_command("help show_command"), arg=ctx.command)
+        if isinstance(exception, commands.BadArgument):
+            return await ctx.send(f"This is an invalid argument. The argument needs to be: `{exception}`")
+        if isinstance(exception, commands.CheckFailure):
+            return await ctx.send("It seems like you are missing requirements to run this command.")
+
+        if isinstance(exception, commands.CommandInvokeError):
+            print(exception)
+            if isinstance(exception.original, exceptions.NeverPlayedSkyblockError):
+                return await ctx.send("This player never played Hypixel Skyblock.", delete_after=7)
+            if isinstance(exception.original, exceptions.BadNameError):
+                return await ctx.send("This username does not exist in Minecraft.", delete_after=7)
+
         traceback_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
         logger.exception("".join(traceback_lines))
         logger.exception(exception)
