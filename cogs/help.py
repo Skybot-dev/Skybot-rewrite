@@ -73,7 +73,8 @@ class Help(commands.Cog):
 
     @help.command()
     async def show_cog(self, ctx, arg):
-        cog : commands.Cog = self.bot.get_cog(arg.capitalize())
+        cogs = {z.lower(): self.bot.cogs[z] for z in self.bot.cogs}
+        cog : commands.Cog = cogs[arg]
         cog_embed = Embed(title=arg.capitalize() + " Help", bot=self.bot, user=ctx.author)
         await cog_embed.set_requested_by_footer()
 

@@ -2,7 +2,6 @@ import discord
 from utils import logging
 from inspect import Parameter
 from discord.ext import commands
-from utils.util import get_config
 
 
 async def on_user_verified(ctx):
@@ -10,7 +9,7 @@ async def on_user_verified(ctx):
     #TODO make this do stuff lel
 
 
-class ServerConfig(commands.Cog):
+class ServerConfig(commands.Cog, name="ServerConfig"):
     def __init__(self, bot):
         self.bot : commands.AutoShardedBot = bot
         
@@ -55,6 +54,21 @@ class ServerConfig(commands.Cog):
             return await ctx.send("My prefix here is `" + prefix["prefix"] + "`")
         return await ctx.send("My prefix here is `" + self.bot.config["default_prefix"] + "`")
 
+
+    @commands.command(name="scammerChannel", description="Set a scammer list channel for your server. Leave [channel] blank to remove the channel", usage="[channel]")
+    @commands.has_guild_permissions(administrator=True)
+    async def scammerChannel(self, ctx, channel:discord.TextChannel=None):
+        guild = await self.bot.scammer_db["channels"].find_one({"_id": ctx.guild.id})
+        if channel:
+            if guild:
+                await self.bot.scammer_db["channels"].update_one({guild, {"$set": {"list_channel": channel.id}}})
+            else:
+                await self.bot.scammer_db["channels"].insert_one({"_id": ctx.guild.id, "list_channel": channel.id})
+            return await ctx.send(f"Set the scammer list channel to {channel.mention}")
+        else:
+            if guild:
+                await self.bot.scammer_db["channels"].delete_one(guild)
+            return await ctx.send("Removed the scammer list channel")
 
 def setup(bot):
     bot.add_cog(ServerConfig(bot))
