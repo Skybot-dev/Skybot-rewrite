@@ -1,6 +1,7 @@
 import discord
 from utils import logging
 from utils.util import is_staff
+from utils.skypy.skypy import fetch_uuid_uname
 from inspect import Parameter
 from discord.ext import commands, tasks
 from utils.embed import Embed
@@ -134,7 +135,7 @@ class scammer(commands.Cog, name="Scammer"):
 
     @scammer.command()
     async def check(self, ctx, username:str):
-        uuid = await uuid_from_name(username)
+        name, uuid = await fetch_uuid_uname(username)
         if not uuid:
             return await ctx.send("Could not find that username")
         scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
@@ -157,7 +158,7 @@ class scammer(commands.Cog, name="Scammer"):
     @scammer.command()
     @commands.check(is_staff)
     async def add(self, ctx, username, *, reason:str):
-        uuid = await uuid_from_name(username)
+        name, uuid = await fetch_uuid_uname(username)
         if not uuid:
             return await ctx.send("Could not find that username")
         scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
@@ -195,7 +196,7 @@ class scammer(commands.Cog, name="Scammer"):
                 user = report["name"]
                 uuid = report["uuid"]
             else:
-                uuid = await uuid_from_name(user)
+                name, uuid = await fetch_uuid_uname(user)
                 if not uuid:
                     return await ctx.send("Could not find that user")
             existing_scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
