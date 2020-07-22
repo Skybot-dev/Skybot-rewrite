@@ -16,6 +16,7 @@ def is_staff(ctx):
         return get_config()["staff_role"] in [role.id for role in ctx.author.roles]
     return False
 
+
 # async def uuid_from_name(name, raise_on_none=True):
 #     if name is None:
 #         if raise_on_none:

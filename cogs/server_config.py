@@ -45,7 +45,7 @@ class ServerConfig(commands.Cog):
     async def reset(self, ctx):
         result = await self.bot.guilds_db["prefixes"].delete_one({"guild_id" : ctx.guild.id})
         if result.deleted_count > 0:
-            return await ctx.send("Prefix has been reset to `" + get_config()["default_prefix"] + "`")
+            return await ctx.send("Prefix has been reset to `" + self.bot.config["default_prefix"] + "`")
         return await ctx.send("Nothing changed. You haven't changed the prefix yet, use the `set` argument.")
         
     @prefix.command()
@@ -53,7 +53,7 @@ class ServerConfig(commands.Cog):
         prefix = await self.bot.guilds_db["prefixes"].find_one({"guild_id" : ctx.guild.id})
         if prefix:
             return await ctx.send("My prefix here is `" + prefix["prefix"] + "`")
-        return await ctx.send("My prefix here is `" + get_config()["default_prefix"] + "`")
+        return await ctx.send("My prefix here is `" + self.bot.config["default_prefix"] + "`")
 
 
 def setup(bot):

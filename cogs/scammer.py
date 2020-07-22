@@ -23,7 +23,7 @@ class scammer(commands.Cog, name="Scammer"):
     @scammer.command()
     async def report(self, ctx):
         embeds = []
-        config = get_config()
+        config = self.bot.config
         blacklisted = await self.bot.scammer_db["users"].find_one({"_id": ctx.author.id})
         if blacklisted:
             if blacklisted["blacklist"]:
@@ -225,7 +225,7 @@ class scammer(commands.Cog, name="Scammer"):
                 else:
                     pub_reporter = f"by {reporter}"
                 scammer_embed.set_footer(text=f"reported {pub_reporter}, confirmed by {str(ctx.author)}")
-                config = get_config()["support_guild"]
+                config = self.bot.config["support_guild"]
                 logguild = self.bot.get_guild(config["ID"])
                 logchannel = logguild.get_channel(config["log_channel"])
                 logembed = discord.Embed(title="Report confirmed", color=0x0000ff)
@@ -282,7 +282,7 @@ class scammer(commands.Cog, name="Scammer"):
                 pass
             await self.bot.scammer_db["reports"].update_one({"_id": report_id}, {"$set": {"status": "rejected", "mod": str(ctx.author)}})
             await self.bot.users_db["users"].update_one({"_id": reporter.id}, {"$inc": {"pending": -1, "rejected": 1}})
-            config = get_config()["support_guild"]
+            config = self.bot.config["support_guild"]
             logguild = self.bot.get_guild(config["ID"])
             logchannel = logguild.get_channel(config["log_channel"])
             logembed = discord.Embed(title="report rejected", color=0x0000ff)
