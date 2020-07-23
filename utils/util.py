@@ -15,16 +15,3 @@ def is_staff(ctx):
     if isinstance(ctx.author, discord.Member):
         return get_config()["staff_role"] in [role.id for role in ctx.author.roles]
     return False
-
-# async def uuid_from_name(name, raise_on_none=True):
-#     if name is None:
-#         if raise_on_none:
-#             raise BadNameError(name)
-#         return name
-#     async with aiohttp.ClientSession() as session:
-#         async with session.get(f'https://api.mojang.com/users/profiles/minecraft/{name}') as resp:
-#             try:
-#                 player = await resp.json()
-#             except aiohttp.ContentTypeError:
-#                 return None
-#     return player["id"]
