@@ -82,7 +82,7 @@ class Skybot(commands.AutoShardedBot):
             result = await adminstats.update_one({"name" : ctx.command.name}, {"$inc" : {"uses" : 1}})
             if result.modified_count == 0:
                 await adminstats.insert_one({"name" : ctx.command.name, "uses" : 0})
-    
+
 
     async def on_command_error(self, ctx : commands.Context, exception):
         if isinstance(exception, commands.CommandNotFound):

@@ -37,7 +37,7 @@ class Misc(commands.Cog, name="Misc"):
     async def suggestion(self, ctx, arg=None):
         await ctx.invoke(self.bot.get_command("help show_command"), arg="suggestion")
     
-    @suggestion.command()
+    @suggestion.command(name="submit", description="submit a suggestion for the bot", aliases=["new", "log"], usage="[suggestion]")
     async def submit(self, ctx, *, answer:str):
         embed = Embed(description=answer, bot=self.bot, user=ctx.author).set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         supportConfig = self.bot.config["support_guild"]            
@@ -66,11 +66,11 @@ class Misc(commands.Cog, name="Misc"):
         embed.timestamp = datetime.fromtimestamp(suggestion_doc["datetime"])
         return embed
     
-    @suggestion.command()
+    @suggestion.command(name="view", description="view a suggestion by its ID", usage="[ID]", hidden=True)
     async def view(self, ctx, id:str):
         await ctx.send(embed=await self.view_suggestion(ctx, id))
     
-    @suggestion.command(name="list")
+    @suggestion.command(name="list", description="view a list of all suggestions", aliases=["all"])
     @commands.check(is_staff)
     async def slist(self, ctx):
         # try:
@@ -84,7 +84,7 @@ class Misc(commands.Cog, name="Misc"):
         # except Exception as e:
         #     await ctx.send(e)
     
-    @suggestion.command()
+    @suggestion.command(name="move", description="move a suggestion to another trello list", usage="[id] [list]", hidden=True)
     @commands.check(is_staff)
     async def move(self, ctx, id:str, *, section:str):
         suggestion_doc = await self.bot.admin_db["suggestions"].find_one({"_id": ObjectId(id)})
@@ -98,13 +98,13 @@ class Misc(commands.Cog, name="Misc"):
         await self.bot.admin_db["suggestions"].update_one({"_id": ObjectId(id)}, {"$set": {"status": section}})
         await ctx.send(f"Moved card `{card.name}` to List `{List[0].name}`")
     
-    @suggestion.command()
+    @suggestion.command(name="clear", description="clear all suggestions", hidden=True)
     @commands.check(is_staff)
     async def clear(self, ctx):
         await self.bot.admin_db["suggestions"].delete_many({})
         await ctx.send("cleard all suggestions")
     
-    @suggestion.command()
+    @suggestion.command(name="delete", description="delete a suggestion", aliases=["remove"], usage="[ID]", hidden=True)
     @commands.check(is_staff)
     async def delete(self, ctx, id:str):
         suggestion_doc = await self.bot.admin_db["suggestions"].find_one_and_delete({"_id": ObjectId(id)})
@@ -126,14 +126,14 @@ class Misc(commands.Cog, name="Misc"):
         await embed.set_made_with_love_footer()
         return embed
     
-    @changelog.command(name="latest")
+    @changelog.command(name="latest", description="view the latest changelogs", aliases=["now"])
     async def latest(self, ctx):
         update = await self.bot.admin_db["changelog"].find_one({"latest": True})
         if not update:
             return await ctx.send("could not find any changelogs")
         await ctx.send(embed=(await self.changelog_embed(ctx, update)))
     
-    @changelog.command()
+    @changelog.command(name="add", description="add a new changelog. Will be the latest one.", aliases=["new"], usage="[type] [version] [description] [bugs]", hidden=True)
     @commands.check(is_staff)
     async def add(self, ctx, Type, version, description, bugs):
         await self.bot.admin_db["changelog"].update_one({"latest": True}, {"$set": {"latest": False}})
@@ -141,7 +141,7 @@ class Misc(commands.Cog, name="Misc"):
         await self.bot.admin_db["changelog"].insert_one(json_data)
         await ctx.send(embed=(await self.changelog_embed(ctx, json_data)))
     
-    @changelog.command()
+    @changelog.command(name="version", description="view changelogs for a specific update", aliases=["v"], usage="[version]")
     async def version(self, ctx, v:str):
         v = v.replace('v', '')
         update = await self.bot.admin_db["changelog"].find_one({"version": v})
@@ -149,14 +149,14 @@ class Misc(commands.Cog, name="Misc"):
             return await ctx.send("Could not find that version")
         await ctx.send(embed=(await self.changelog_embed(ctx, update)))
     
-    @changelog.command()
+    @changelog.command(name="clear", description="clear all changelogs")
     @commands.check(is_staff)
     async def clear(self, ctx):
         await self.bot.admin_db["changelog"].delete_many({})
         await ctx.send("deleted all changelogs")
     
-    @changelog.command()
-    async def list(self, ctx):
+    @changelog.command(name="list", description="list all the bot's changelogs", aliases=["all"])
+    async def slist(self, ctx):
         Embeds = []
         Embeds.append(Embed(title="Bot changelogs", bot=self.bot, user=ctx.author))
         count = 0
