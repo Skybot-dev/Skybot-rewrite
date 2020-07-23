@@ -22,6 +22,11 @@ class Connections(commands.Cog):
                       usage="([username])")
     async def verify_direct(self, ctx, username=None):
         await ctx.invoke(self.verify, username=username)
+    
+    @commands.command(name="usersetup",
+                      description="Set up your account details and preferences",)
+    async def setupdirect(self, ctx):
+        await ctx.invoke(self.setup)
 
     @commands.group(name="account",
                     description="Set up personal settings.",
@@ -49,21 +54,28 @@ class Connections(commands.Cog):
                 await dm_ctx.invoke(self.link, username=user_msg.content)
             else:
                 await ctx.author.send("Oh nice you already have a username linked, we will skip this part then!")
-            player = await skypy.Player(keys=self.bot.api_keys, uuid=find_one["uuid"])
             find_one = await self.connections.find_one({"id" : ctx.author.id})
+            player = await skypy.Player(keys=self.bot.api_keys, uuid=find_one["uuid"])
             if not "profile_id" in find_one.keys():
-                await ctx.author.send("Great! You now have your username linked to your Discord account and you will be able to use commands without providing your username each time.\nNext you should set a default Profile too. Please tell me the name of the profile. Your Profiles: " + ", ".join(player.profiles.keys()))
-                user_msg = await self.bot.wait_for("message", check=lambda m : m.author == ctx.author and m.channel == dm_msg.channel, timeout=60)
-                dm_ctx = await self.bot.get_context(user_msg)
-                await dm_ctx.invoke(self.profile, profile=user_msg.content)
-                find_one = await self.connections.find_one({"id" : ctx.author.id})
-                if not "profile_id" in find_one.keys():
-                    return await dm_ctx.send("Couldn't set your default profile! Please retry.")
+                if len(player.profiles.keys()) < 2:
+                    dm_ctx = await self.bot.get_context(dm_msg)
+                    dm_ctx.author = ctx.author
+                    if not await dm_ctx.invoke(self.profile, profile=list(player.profiles.keys())[0]):
+                        await ctx.author.send("You only had one profile so that was set as your default.")
+                else:
+                    await ctx.author.send("Great! You now have your username linked to your Discord account and you will be able to use commands without providing your username each time.\nNext you should set a default Profile too. Please tell me the name of the profile. Your Profiles: " + ", ".join(player.profiles.keys()))
+                    user_msg = await self.bot.wait_for("message", check=lambda m : m.author == ctx.author and m.channel == dm_msg.channel, timeout=60)
+                    dm_ctx = await self.bot.get_context(user_msg)
+                    await dm_ctx.invoke(self.profile, profile=user_msg.content)
+                    find_one = await self.connections.find_one({"id" : ctx.author.id})
+                    if not "profile_id" in find_one.keys():
+                        return await dm_ctx.send("Couldn't set your default profile! Please retry.")
             else:
                 await ctx.author.send("Well, you already have a default profile set too! Let's skip this step too then.")
             find_one = await self.connections.find_one({"id" : ctx.author.id})
             if not find_one["verified"]:
-                dm_msg = await ctx.author.send("Wow look at your skill writing properties about yourself. Next up you should verify that you actually own this Minecraft account. Please link Hypixel with your discord account and confirm trough reacting to this message.(https://www.youtube.com/watch?v=glhxkwlBD7A only tutorial the devs found yet.)")
+                dm_msg = await ctx.author.send("Wow look at your skill writing properties about yourself. Next up you should verify that you actually own this Minecraft account. Please link Hypixel with your discord account and confirm through reacting to this message.")
+                dm_msg = await ctx.author.send("https://giant.gfycat.com/DentalTemptingLeonberger.mp4")
                 await dm_msg.add_reaction("✅")
                 user_msg = await self.bot.wait_for("reaction_add", check=lambda reaction, user: user == ctx.author and str(reaction.emoji) == "✅", timeout=60)
                 dm_ctx = await self.bot.get_context(dm_msg)
@@ -73,15 +85,16 @@ class Connections(commands.Cog):
                 if not find_one["verified"]:
                     return await dm_ctx.send("Couldn't verify! That was the last step in this setup, so just use the verify command next try.")
             else:
-                await ctx.author.send("You are already verified.")
+                dm_msg = await ctx.author.send("You are already verified.")
+                dm_ctx = await self.bot.get_context(dm_msg)
             await ctx.author.send("Here's a summary of your information:")
-            await dm_ctx.invoke(self.info)
+            await dm_ctx.invoke(self.info, user=ctx.author)
         except asyncio.TimeoutError:
             return await ctx.author.send("Session closed! You took too long to respond. Please start a new session.")
 
     @account.command(name="link", description="Link your username to you Discord account.", usage="[username]")
-    async def link(self, ctx, username):     
-        mc_user = await skypy.Player(keys=self.bot.api_keys, uname=username)
+    async def link(self, ctx, username):    
+        mc_user = await skypy.Player(self.bot.api_keys, uname=username)
         user_db = await self.connections.find_one({"id" : ctx.author.id})
         uuid_dbs = self.connections.find({"uuid" : mc_user.uuid})
 
@@ -125,9 +138,9 @@ class Connections(commands.Cog):
             if player.discord == name:
                 if user_db["verified"] == False:
                     await self.connections.update_one(user_db, {"$set" : {"verified" : True}})
-                    await on_user_verified(ctx)
+                    await on_user_verified(ctx, self.bot, username)
                     return await ctx.send("Successfully verified!")
-                await on_user_verified(ctx)
+                await on_user_verified(ctx, self.bot, username)
                 return await ctx.send("You are already verified.")
             return await ctx.send(f"Your link between Hypixel and Discord is incorrect.\nHypixel: {player.discord}\nDiscord: {name}")
         
@@ -146,7 +159,8 @@ class Connections(commands.Cog):
             return await ctx.send("You have no profile with that name.\nYour Profiles: " + ", ".join(profiles.keys()))
         
         await self.connections.update_one(user_db, {"$set" : {"profile_id" : profiles[profile.capitalize()]}})
-        return await ctx.send(f"Set your default profile to `{profile.capitalize()}`")
+        await ctx.send(f"Set your default profile to `{profile.capitalize()}`")
+        return False
 
     async def get_info_embed(self, ctx, user, user_db, linked=True):
         player : skypy.Player = await skypy.Player(keys=self.bot.api_keys, uuid=user_db["uuid"])

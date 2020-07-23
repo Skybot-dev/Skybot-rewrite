@@ -2,10 +2,18 @@ import discord
 from utils import logging
 from inspect import Parameter
 from discord.ext import commands
+from utils.skypy import skypy
 
+async def on_user_verified(ctx, bot: commands.Bot, name):
+    try:
+        if await bot.guilds_db["settings"].find_one({"_id": ctx.guild.id})["banscammers"]:
+            name, uuid = await skypy.fetch_uuid_uname(name)
+            if await bot.scammer_db["scammer_list"].find_one({"_id": uuid}):
+                await ctx.author.ban("verified as scammer")
+    except (KeyError, discord.Forbidden) as e:
+        if isinstance(e, discord.Forbidden):
+            await ctx.send(f"{ctx.guild.owner.mention}:\n{ctx.author.mention} just successfully verifed as a known scammer, but I do not have permission to ban them.")
 
-async def on_user_verified(ctx):
-    print("User verified")
     #TODO make this do stuff lel
 
 
@@ -69,6 +77,22 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             if guild:
                 await self.bot.scammer_db["channels"].delete_one(guild)
             return await ctx.send("Removed the scammer list channel")
+
+    @commands.command(name="banscammers", description="Automatically ban users who successfully verify as a known scammer", aliases=["banscammer"], usage="[on|off]")
+    @commands.has_guild_permissions(administrator=True)
+    async def banscammers(self, ctx, toggle:str="off"):
+        if toggle.lower() == "on":
+            choice = True
+        elif toggle.lower() == "off":
+            choice = False
+        else:
+            return await ctx.send("Invalid choice. Choose either `on` or `off`")
+        if await self.bot.guilds_db["settings"].find_one({"_id": ctx.guild.id}):
+            await self.bot.guilds_db["settings"].update_one({"_id": ctx.guild.id}, {"$set": {"banscammers": choice}})
+        else:
+            await self.bot.guilds_db["settings"].insert_one({"_id": ctx.guild.id, "banscammers": choice})
+        await ctx.send(f"Setting `banscammers` is now `{toggle.lower()}` in this server")
+
 
 def setup(bot):
     bot.add_cog(ServerConfig(bot))
