@@ -3,7 +3,7 @@ import time
 import copy
 import discord
 from loguru import logger
-from utils.util import is_staff
+from utils.util import is_staff, get_config
 from discord.ext import commands
 
 
@@ -28,6 +28,12 @@ class Admin(commands.Cog):
                     logger.info(f"loaded cogs.{filename[:-3]}")
         await ctx.message.add_reaction("👌")
 
+    @commands.command()
+    @commands.check(is_staff)
+    async def reload_config(self, ctx):
+        self.bot.config = get_config()
+        return await ctx.send(f"`config reloaded by` {ctx.author.mention}")
+    
     @commands.check(is_staff)
     @commands.command()
     async def timeit(self, ctx, *, command: str):

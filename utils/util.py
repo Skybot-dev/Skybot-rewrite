@@ -1,6 +1,10 @@
 import json
 import aiohttp
+import discord
 from trello import TrelloClient
+from discord.ext import commands
+
+
 def get_config():
     with open("config.json", "r") as fp:
         return json.load(fp)
@@ -10,13 +14,13 @@ def trelloinit():
     return client.get_board(trelloconfig["board_id"])
 
 def is_staff(ctx):
-    return get_config()["staff_role"] in [role.id for role in ctx.author.roles]
+    if isinstance(ctx.author, discord.Member):
+        return get_config()["staff_role"] in [role.id for role in ctx.author.roles]
+    return ctx.author.id == 201686355493912576 or ctx.author.id == 564798709045526528
 
-async def uuid_from_name(name):
-        async with aiohttp.ClientSession() as session:
-            async with session.get('https://api.mojang.com/users/profiles/minecraft/'+name) as resp:
-                try:
-                    player = await resp.json()
-                except aiohttp.ContentTypeError:
-                    return None
-        return player["id"]
+def has_is_staff(command):
+    if command and hasattr(command, "checks"):
+        checks = [check.__name__ for check in command.checks]
+        if "is_staff" in checks:
+            return True
+    return False

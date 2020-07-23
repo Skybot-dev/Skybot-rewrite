@@ -550,6 +550,10 @@ class Player(ApiInterface):
 
 				for k, v in profile_ids.items():
 					self.profiles[v['cute_name']] = k
+				try:
+					self.discord = player["player"]["socialMedia"]["links"]["DISCORD"]
+				except:
+					self.discord = None
 
 			except (KeyError, TypeError):
 				raise NeverPlayedSkyblockError(self.uname) from None
@@ -568,6 +572,8 @@ class Player(ApiInterface):
 				self.guild = None
 
 		self._profile_set = False
+
+
 
 	@classmethod
 	def from_raw(cls, uname, uuid, data, achievements):

@@ -1,6 +1,7 @@
 import discord
 from utils import logging
-from utils.util import is_staff, uuid_from_name, get_config
+from utils.util import is_staff
+from utils.skypy.skypy import fetch_uuid_uname
 from inspect import Parameter
 from discord.ext import commands, tasks
 from utils.embed import Embed
@@ -23,7 +24,7 @@ class scammer(commands.Cog, name="Scammer"):
     @scammer.command()
     async def report(self, ctx):
         embeds = []
-        config = get_config()
+        config = self.bot.config
         blacklisted = await self.bot.scammer_db["users"].find_one({"_id": ctx.author.id})
         if blacklisted:
             if blacklisted["blacklist"]:
@@ -105,13 +106,6 @@ class scammer(commands.Cog, name="Scammer"):
                         await report_channel.send(embed=embed)
                     await report_channel.send("-------------------------")
                     await ctx.author.send(f"Your report has been sent. You will be told whether your report has been confirmed or not. To check its status, use `check_report [report id]`. Your unique report id for this report is {report_id}")
-                    if not isinstance(ctx.channel, discord.channel.DMChannel):
-                        await self.bot.users_db["guilds"].update_one({"_id": ctx.guild.id}, {"$inc": {"reports": 1, "pending": 1}})
-                    user = await self.bot.users_db.find_one({"_id": ctx.author.id})
-                    if not user:
-                        await self.bot.users_db.insert_one({"_id": ctx.author.id, "reports": 1, "pending": 1, "confirmed": 0, "rejected": 0, "blacklist": False})
-                    else:
-                        await self.bot.users_db.update_one({"_id": ctx.author.id}, {"$inc": {"reports": 1, "pending": 1}})
                     return
                 else:
                     await ctx.author.send("Report cancelled")
@@ -141,7 +135,7 @@ class scammer(commands.Cog, name="Scammer"):
 
     @scammer.command()
     async def check(self, ctx, username:str):
-        uuid = await uuid_from_name(username)
+        name, uuid = await fetch_uuid_uname(username)
         if not uuid:
             return await ctx.send("Could not find that username")
         scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
@@ -164,14 +158,30 @@ class scammer(commands.Cog, name="Scammer"):
     @scammer.command()
     @commands.check(is_staff)
     async def add(self, ctx, username, *, reason:str):
-        uuid = await uuid_from_name(username)
+        name, uuid = await fetch_uuid_uname(username)
         if not uuid:
             return await ctx.send("Could not find that username")
         scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
         if scammer:
             return await ctx.send("Already on the scammer list")
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://api.slothpixel.me/api/players/"+user) as resp:
+                    hypixelplayer = await resp.json()
+            discordname = hypixelplayer["links"]["DISCORD"]
+        except aiohttp.ContentTypeError as e:
+            return await ctx.send("An issue occured while processing that request. Please check that you have not mistyped anything and try again.")
         await self.bot.scammer_db["scammer_list"].insert_one({"_id": uuid, "reason": reason, "mod": str(ctx.author)})
+        scammer_embed = discord.Embed(title=user, description=report_reason, color=discord.Embed.Empty).add_field(name="discord:", value=discordname, inline=False).set_footer(text=f"added by {str(ctx.author)}")
         return await ctx.send(f"added {username} to the scammer list for reason: {reason}")
+        guilds = self.bot.scammer_db["channels"].find({})
+        async for guild in guilds:
+            if "list_channel" not in guild:
+                pass
+            else:
+                channel = guild["list_channel"]
+                await self.bot.get_guild(guild["_id"]).get_channel(channel).send(embed=scammer_embed)
+                await asyncio.sleep(0.5)
     
     @scammer.command()
     @commands.check(is_staff)
@@ -186,7 +196,7 @@ class scammer(commands.Cog, name="Scammer"):
                 user = report["name"]
                 uuid = report["uuid"]
             else:
-                uuid = await uuid_from_name(user)
+                name, uuid = await fetch_uuid_uname(user)
                 if not uuid:
                     return await ctx.send("Could not find that user")
             existing_scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
@@ -197,16 +207,10 @@ class scammer(commands.Cog, name="Scammer"):
                             hypixelplayer = await resp.json()
                     discordname = hypixelplayer["links"]["DISCORD"]
                 except aiohttp.ContentTypeError as e:
-                    await ctx.send("An issue occured while processing that request. Please check that you have not mistyped anything and try again.")
+                    return await ctx.send("An issue occured while processing that request. Please check that you have not mistyped anything and try again.")
                 await self.bot.scammer_db["reports"].update_one({"_id": report_id}, {"$set": {"status": "Confirmed", "mod": str(ctx.author)}})
                 reporter_id = report["reporter_id"]
                 report_reason = report["reason"]
-                await self.bot.users_db["users"].update_one({"_id": reporter_id}, {"$inc": {"pending": -1, "confirmed": 1}})
-                try:
-                    guild_id = report["guild"]
-                    await self.bot.users_db["guilds"].update_one({"_id": guild_id}, {"$inc": {"pending": -1, "confirmed": 1}})
-                except KeyError:
-                    pass
                 reportuser = self.bot.get_user(reporter_id)
                 try:
                     await reportuser.send(f"You report [`ID: {reportid}`] has been processed and the scammer has been added to the list. Thanks for helping out the community!")
@@ -225,7 +229,7 @@ class scammer(commands.Cog, name="Scammer"):
                 else:
                     pub_reporter = f"by {reporter}"
                 scammer_embed.set_footer(text=f"reported {pub_reporter}, confirmed by {str(ctx.author)}")
-                config = get_config()["support_guild"]
+                config = self.bot.config["support_guild"]
                 logguild = self.bot.get_guild(config["ID"])
                 logchannel = logguild.get_channel(config["log_channel"])
                 logembed = discord.Embed(title="Report confirmed", color=0x0000ff)
@@ -235,16 +239,16 @@ class scammer(commands.Cog, name="Scammer"):
                 await logchannel.send(embed=logembed)
                 await ctx.message.delete()
                 await ctx.send("Report confirmed", delete_after=3)
-                guilds = self.bot.users_db["guilds"].find({})
+                guilds = self.bot.scammer_db["channels"].find({})
                 async for guild in guilds:
-                    if not guild["list_channel"]:
+                    if "list_channel" not in guild:
                         pass
                     else:
                         channel = guild["list_channel"]
                         server = self.bot.get_guild(guild["_id"])
                         send_channel = server.get_channel(channel)
                         await send_channel.send(embed=scammer_embed)
-                        await asyncio.sleep(0.1)
+                        await asyncio.sleep(0.5)
             else:
                 await ctx.send("This user is already on the scammer list")
                 await ctx.message.delete()
@@ -275,14 +279,8 @@ class scammer(commands.Cog, name="Scammer"):
                         await reporter.send(f'Unfortunately, upon reviewal of your report `[ID: {reportid}]`, the moderators decided to reject it, for reason: "{reason}". You may resubmit with different content')
                 except discord.Forbidden:
                     pass
-            try:
-                guild = report['guild']
-                await self.bot.users_db["guilds"].update_one({"_id": guild}, {"$inc": {"pending": -1, "rejected": 1}})
-            except KeyError:
-                pass
             await self.bot.scammer_db["reports"].update_one({"_id": report_id}, {"$set": {"status": "rejected", "mod": str(ctx.author)}})
-            await self.bot.users_db["users"].update_one({"_id": reporter.id}, {"$inc": {"pending": -1, "rejected": 1}})
-            config = get_config()["support_guild"]
+            config = self.bot.config["support_guild"]
             logguild = self.bot.get_guild(config["ID"])
             logchannel = logguild.get_channel(config["log_channel"])
             logembed = discord.Embed(title="report rejected", color=0x0000ff)

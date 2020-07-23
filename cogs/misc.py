@@ -16,14 +16,19 @@ class Misc(commands.Cog, name="Misc"):
     """Miscellaneous commands"""
     def __init__(self, bot):
         self.bot = bot 
-        self.my_board = self.bot.trelloBoard
+        self.yes = "yes"
+        self.my_board = self.bot.trello_board
         self.my_lists = self.my_board.list_lists()
         self.stats.start()
     
+    @commands.command(name="support", description="Support Server link", aliases=["sup"], usage="")
+    async def support(self, ctx):
+        await ctx.send("Join the Support Discord here: https://discord.gg/hmmfXud")
+
     @commands.command(name="invite", description="invite the bot to your server")
     async def invite(self, ctx):
         embed = Embed(title="Invite the bot to your server", bot=self.bot, user=ctx.author)
-        embed.add_field(name="--------------------------------", value=f"The bot already is on {len(self.bot.guilds)} Guilds!\n[Click Here to invite the Bot]({get_config()['bot_invite']})")
+        embed.add_field(name="--------------------------------", value=f"The bot already is on {len(self.bot.guilds)} Guilds!\n[Click Here to invite the Bot]({self.bot.config['bot_invite']})")
         await embed.set_made_with_love_footer()
         await ctx.send(embed=embed)
 
@@ -35,7 +40,7 @@ class Misc(commands.Cog, name="Misc"):
     @suggestion.command()
     async def submit(self, ctx, *, answer:str):
         embed = Embed(description=answer, bot=self.bot, user=ctx.author).set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-        supportConfig = get_config()["support_guild"]            
+        supportConfig = self.bot.config["support_guild"]            
         suggestionChannel = self.bot.get_guild(supportConfig["ID"]).get_channel(supportConfig["suggest_channel"])
         msg = await suggestionChannel.send(embed=embed)
         await msg.add_reaction(u"\u2705")
@@ -50,7 +55,7 @@ class Misc(commands.Cog, name="Misc"):
         suggestion_doc = await self.bot.admin_db["suggestions"].find_one({"_id": ObjectId(id)})
         if not suggestion_doc:
             return await ctx.send("Could not find a suggestion with that ID")
-        supportConfig = get_config()["support_guild"]      
+        supportConfig = self.bot.config["support_guild"]      
         msg = await (self.bot.get_guild(supportConfig["ID"]).get_channel(supportConfig["suggest_channel"])).fetch_message(suggestion_doc["message"])
         user = self.bot.get_user(suggestion_doc["user"])
         embed = discord.Embed(description=suggestion_doc["content"], color=discord.Color.gold()).set_author(name=user, icon_url=user.avatar_url)
@@ -173,7 +178,7 @@ class Misc(commands.Cog, name="Misc"):
     
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        config = get_config()
+        config = self.bot.config
         logguild = self.bot.get_guild(config["support_guild"]["ID"])
         logchannel = logguild.get_channel(config["support_guild"]["log_channel"])
         #msg = await logchannel.fetch_message(config["support_guild"]["stats"]["message"])
@@ -182,7 +187,7 @@ class Misc(commands.Cog, name="Misc"):
     
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        config = get_config()
+        config = self.bot.config
         logguild = self.bot.get_guild(config["support_guild"]["ID"])
         logchannel = logguild.get_channel(config["support_guild"]["log_channel"])
         embed = discord.Embed(title="Guild remove", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {len(guild.members)}", color=0xff0000)
@@ -191,7 +196,7 @@ class Misc(commands.Cog, name="Misc"):
     
     @tasks.loop(minutes=5)
     async def stats(self):
-        config = get_config()["support_guild"]
+        config = self.bot.config["support_guild"]
         guild = self.bot.get_guild(config["ID"])
         config = config["stats"]
         channel = guild.get_channel(config["channel"])
