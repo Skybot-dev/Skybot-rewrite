@@ -78,6 +78,22 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             return await ctx.send("Removed the scammer list channel")
         
         
+    @commands.command(name="banscammers", description="Automatically ban users who successfully verify as a known scammer", aliases=["banscammer"], usage="[on|off]")
+    @commands.has_guild_permissions(administrator=True)
+    async def banscammers(self, ctx, toggle:str="off"):
+        if toggle.lower() == "on":
+            choice = True
+        elif toggle.lower() == "off":
+            choice = False
+        else:
+            return await ctx.send("Invalid choice. Choose either `on` or `off`")
+        if await self.bot.guilds_db["settings"].find_one({"_id": ctx.guild.id}):
+            await self.bot.guilds_db["settings"].update_one({"_id": ctx.guild.id}, {"$set": {"banscammers": choice}})
+        else:
+            await self.bot.guilds_db["settings"].insert_one({"_id": ctx.guild.id, "banscammers": choice})
+        await ctx.send(f"Setting `banscammers` is now `{toggle.lower()}` in this server")
+        
+        
     @commands.group(name="verifynick", description="Verified members get their nickname changed to their mc username.", usage="[on/off/info/format]", invoke_without_subcommand=True)
     @commands.has_guild_permissions(administrator=True)
     async def verifynick(self, ctx):
@@ -143,20 +159,6 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
     async def info(self, ctx):
         pass
 
-    @commands.command(name="banscammers", description="Automatically ban users who successfully verify as a known scammer", aliases=["banscammer"], usage="[on|off]")
-    @commands.has_guild_permissions(administrator=True)
-    async def banscammers(self, ctx, toggle:str="off"):
-        if toggle.lower() == "on":
-            choice = True
-        elif toggle.lower() == "off":
-            choice = False
-        else:
-            return await ctx.send("Invalid choice. Choose either `on` or `off`")
-        if await self.bot.guilds_db["settings"].find_one({"_id": ctx.guild.id}):
-            await self.bot.guilds_db["settings"].update_one({"_id": ctx.guild.id}, {"$set": {"banscammers": choice}})
-        else:
-            await self.bot.guilds_db["settings"].insert_one({"_id": ctx.guild.id, "banscammers": choice})
-        await ctx.send(f"Setting `banscammers` is now `{toggle.lower()}` in this server")
 
 
 def setup(bot):
