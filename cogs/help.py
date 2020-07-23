@@ -4,6 +4,7 @@ from utils.embed import Embed
 from utils.expander import Expander
 from discord.ext import commands
 from utils import logging
+from utils.util import has_is_staff, is_staff
 
 class Help(commands.Cog):
     def __init__(self, bot):
@@ -24,11 +25,12 @@ class Help(commands.Cog):
             return
 
         arg = arg.lower()
-
-        command_names = [command.name for command in self.bot.commands if str(command.cog) != "Admin" and str(commands.Cog) != "Help"]
+        staff = is_staff(ctx)
+        command_names = [command.name for command in self.bot.commands if str(command.cog) != "Admin" and str(command.cog) != "Help" and not has_is_staff(command) or staff]
         for command in self.bot.commands:
-            for alias in command.aliases:
-                command_names.append(alias)
+            if str(command.cog) != "Admin" and str(command.cog) != "Help" and not has_is_staff(command) or staff:
+                for alias in command.aliases:
+                    command_names.append(alias)
         if arg.split(" ")[0] in command_names:
             await ctx.invoke(self.show_command, arg=arg)
             return
@@ -38,24 +40,30 @@ class Help(commands.Cog):
             await ctx.invoke(self.show_cog, arg=arg)
             return
 
-        raise commands.BadArgument(message="Command or Cog")
+        raise commands.BadArgument(message="Command or Category")
         
     async def get_list_embed(self, ctx, expanded=False):
+        staff = is_staff(ctx)
         list_embed = Embed(title="Categories", bot=self.bot, user=ctx.author)
         list_embed.set_author(name=f"Use {ctx.prefix}help [Command/Category]")
         await list_embed.set_requested_by_footer()
 
         for name, cog in self.bot.cogs.items():
-            if name == "Admin" or name == "Help" : continue
+            if name == "Admin" or name == "Help": continue
             if not cog.get_commands(): continue
-
+            
             commands = []
             for command in cog.get_commands():
+                if has_is_staff(command) and not staff: continue
                 if hasattr(command, "commands") and expanded:
-                    sub_cmds = [command.name for command in command.commands]
-                    commands.append("`" + command.name + "`\n - " + "\n - ".join(sub_cmds))
+                    sub_cmds = [command.name for command in command.commands if not has_is_staff(command) or staff]
+                    if sub_cmds:
+                        commands.append("`" + command.name + "`\n - " + "\n - ".join(sub_cmds))
+                    else:
+                        commands.append(f"`{command.name}`")
                 else:
                     commands.append(f"`{command.name}`")
+            print(commands)
             list_embed.add_field(name=name, value="\n".join(commands), inline=True)
 
         list_embed.add_field(name="Links", value="[Apply as Dev](https://discord.gg/SQebkz9) | [Vote](https://top.gg/bot/630106665387032576/vote) | [Invite the Bot to your server](https://discordapp.com/oauth2/authorize?client_id=630106665387032576&scope=bot&permissions=8) | [Support Server](https://discord.gg/hmmfXud) | [Todos](https://trello.com/b/2yBAtx82/skybot-rewrite)", inline=False)
@@ -94,7 +102,10 @@ class Help(commands.Cog):
             command = arg
         elif isinstance(arg, str):
             command = self.bot.get_command(arg)
-
+            
+        if has_is_staff(command) and not is_staff(ctx):
+            raise commands.BadArgument(message="Command or Category")
+        
         if command.parents:
             command_embed = Embed(title=f"{ctx.prefix}{' '.join([command.name.capitalize() for command in command.parents])} {command.name.capitalize()}", bot=self.bot, user=ctx.author)
         else:
@@ -116,11 +127,6 @@ class Help(commands.Cog):
 
         await ctx.send(embed=command_embed)
 
-
-
-    @commands.command(name="support", description="Support Server link", aliases=["sup"], usage="")
-    async def support(self, ctx):
-        await ctx.send("Join the Support Discord here: https://discord.gg/hmmfXud")
 
 
 def setup(bot):

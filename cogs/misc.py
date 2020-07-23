@@ -21,6 +21,10 @@ class Misc(commands.Cog, name="Misc"):
         self.my_lists = self.my_board.list_lists()
         self.stats.start()
     
+    @commands.command(name="support", description="Support Server link", aliases=["sup"], usage="")
+    async def support(self, ctx):
+        await ctx.send("Join the Support Discord here: https://discord.gg/hmmfXud")
+
     @commands.command(name="invite", description="invite the bot to your server")
     async def invite(self, ctx):
         embed = Embed(title="Invite the bot to your server", bot=self.bot, user=ctx.author)
