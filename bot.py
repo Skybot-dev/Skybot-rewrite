@@ -76,12 +76,13 @@ class Skybot(commands.AutoShardedBot):
         await self.process_commands(after)
         
     async def on_command_completion(self, ctx):
-        if not ctx.command_failed:
-            adminstats = self.admin_db["adminstats"]
+        if not ctx.command_failed and not ctx.command.parents:
+            usagestats = self.admin_db["usagestats"]
 
-            result = await adminstats.update_one({"name" : ctx.command.name}, {"$inc" : {"uses" : 1}})
+            result = await usagestats.update_one({"name" : ctx.command.name}, {"$inc" : {"uses" : 1}})
             if result.modified_count == 0:
-                await adminstats.insert_one({"name" : ctx.command.name, "uses" : 0})
+                await usagestats.insert_one({"name" : ctx.command.name, "uses" : 1})
+            
 
 
     async def on_command_error(self, ctx : commands.Context, exception):
@@ -95,9 +96,11 @@ class Skybot(commands.AutoShardedBot):
             await ctx.send("You are Missing required arguments!", delete_after=7)
             return await ctx.invoke(self.get_command("help show_command"), arg=ctx.command)
         if isinstance(exception, commands.BadArgument):
-            return await ctx.send(f"This is an invalid argument. The argument needs to be: `{exception}`")
+            return await ctx.send(f"This is an invalid argument.\n`{exception}`")
         if isinstance(exception, commands.CheckFailure):
-            return await ctx.send("It seems like you are missing requirements to run this command.")
+            return await ctx.send("It seems like you do not have permissions to run this.")
+        if isinstance(exception, commands.TooManyArguments):
+            return await ctx.send("You Provided too many arguments.")
 
         if isinstance(exception, commands.CommandInvokeError):
             print(exception)

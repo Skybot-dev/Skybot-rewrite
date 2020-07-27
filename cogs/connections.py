@@ -3,7 +3,7 @@ import asyncio
 from discord.ext import commands
 from utils.skypy import skypy, exceptions
 from utils.embed import Embed
-from cogs.server_config import on_user_verified
+from cogs.server_config import on_user_verified, on_user_unverified
 from EZPaginator import Paginator
 
 
@@ -36,7 +36,7 @@ class Connections(commands.Cog):
     async def account(self, ctx):
         await ctx.invoke(self.bot.get_command("help show_command"), arg="account")
 
-    @account.command()
+    @account.command(name="setup", description="Set up your account for the bot.", usage="")
     async def setup(self, ctx):
         if isinstance(ctx.channel, discord.abc.GuildChannel):
             msg = await ctx.send("Started Setup in DMs!")
@@ -103,10 +103,12 @@ class Connections(commands.Cog):
         async for uuid_db in uuid_dbs:
             if uuid_db and uuid_db["id"] == ctx.author.id:
                 return await ctx.send("You already have this Minecraft account linked to your Discord account.")
+            if uuid_db and uuid_db["verified"]:
+                return await ctx.send("This username has already been verified by the owner, you can't link to it anymore.")
 
         if user_db:
             before = await skypy.fetch_uuid_uname(user_db["uuid"])
-            await self.connections.update_one(user_db, {"$set" : {"uuid" : mc_user.uuid, "verified" : False}})
+            await self.connections.update_one(user_db, {"$set" : {"uuid" : mc_user.uuid, "verified" : False}, "$unset" : {"profile_id" : ""}})
             return await ctx.send(f"Successfully Updated your link from `{before[0]}` to `{mc_user.uname}`.")
         
         await self.connections.insert_one({"id" : ctx.author.id, "uuid" : mc_user.uuid, "verified" : False})
@@ -120,7 +122,8 @@ class Connections(commands.Cog):
         if user_db:
             await self.connections.delete_one(user_db)
             mc_user = await skypy.fetch_uuid_uname(user_db['uuid'])
-            return await ctx.send(f"Successfully unlinked `{mc_user[0]}` from your Discord account.")
+            await ctx.send(f"Successfully unlinked `{mc_user[0]}` from your Discord account.")
+            return await on_user_unverified(ctx, self.bot, ctx.author)
         return await ctx.send("You don't have a account linked.")
 
     @account.command(name="verify", description="Verify that you own the Minecraft account and that you play on Hypixel.", usage="([username])")
@@ -131,17 +134,15 @@ class Connections(commands.Cog):
 
         if user_db:
             player = await skypy.Player(keys=self.bot.api_keys, uuid=user_db["uuid"])
-            if hasattr(ctx.author, "nick")  and ctx.author.nick:
-                name = ctx.author.nick + "#" + ctx.author.discriminator
-            else:
-                name = str(ctx.author)
+            name = str(ctx.author)
             if player.discord == name:
                 if user_db["verified"] == False:
                     await self.connections.update_one(user_db, {"$set" : {"verified" : True}})
-                    await on_user_verified(ctx, self.bot, username)
-                    return await ctx.send("Successfully verified!")
-                await on_user_verified(ctx, self.bot, username)
-                return await ctx.send("You are already verified.")
+                    await ctx.send("Successfully verified!")
+                    return await on_user_verified(ctx, self.bot, username)
+                
+                await ctx.send("You are already verified.")
+                return await on_user_verified(ctx, self.bot, username)
             return await ctx.send(f"Your link between Hypixel and Discord is incorrect.\nHypixel: {player.discord}\nDiscord: {name}")
         
         msg = await ctx.invoke(self.link, username=username)
@@ -175,7 +176,7 @@ class Connections(commands.Cog):
 
         embed = Embed(title=str(user) + " <=> " + player.uname, bot=self.bot, user=ctx.author)
         await embed.set_requested_by_footer()
-        scammer = bool(await self.bot.scammer_db["scammers"].find_one({"_id": user_db["uuid"]}))
+        scammer = bool(await self.bot.scammer_db["scammer_list"].find_one({"_id": user_db["uuid"]}))
         embed.add_field(name="General Information", value=f"Discord username: `{str(user)}`\nMc username: `{player.uname}`\nUUID: `{player.uuid}`\nLinked to Bot: `{linked}`", inline=False)
         embed.add_field(name="Advanced Information", value=f"Profile(s): `{', '.join(player.profiles.keys())}`\n\
         Default Profile: `{profile}`\nScammer: `{scammer}`\nVerified: `{user_db['verified']}`", inline=False)

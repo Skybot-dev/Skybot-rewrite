@@ -4,6 +4,7 @@ import copy
 import discord
 from loguru import logger
 from utils.util import is_staff, get_config
+from utils.embed import Embed
 from discord.ext import commands
 
 
@@ -33,6 +34,36 @@ class Admin(commands.Cog):
     async def reload_config(self, ctx):
         self.bot.config = get_config()
         return await ctx.send(f"`config reloaded by` {ctx.author.mention}")
+    
+    
+    @commands.command(name="usagestats", aliases = ["ustats"])
+    @commands.check(is_staff)
+    async def usagestats(self, ctx, arg=None):
+        usagestats = self.bot.admin_db["usagestats"]
+        if arg and arg.lower() == "reset":
+            async for cmd in usagestats.find({}):
+                await usagestats.update_one(cmd, {"$set" : {"uses" : 0}})
+
+            doc = await usagestats.find_one({"name" : "last_reset"})
+            if doc and "date" in doc.keys():
+                await usagestats.update_one({"name" : "last_reset"}, {"$currentDate" : {"date" : False}})
+            else:
+                await usagestats.insert_one({"name" : "last_reset", "date" : 0})
+                await usagestats.update_one({"name" : "last_reset"}, {"$currentDate" : {"date" : False}})
+            return await ctx.send("Reset usage stats.")
+        
+        embed = Embed(self.bot, ctx.author, title="Command Usage Stats")
+        await embed.set_requested_by_footer()
+        async for cmd in usagestats.find({}):
+            if cmd["name"] != "last_reset":
+                embed.add_field(name=cmd["name"].capitalize(), value="Uses: " + str(cmd["uses"]))
+            else:
+                embed.add_field(name="Last reset", value=str(cmd["date"])[:-7])
+        await ctx.send(embed=embed)
+        
+        
+        
+    
     
     @commands.check(is_staff)
     @commands.command()
