@@ -24,3 +24,30 @@ def has_is_staff(command):
         if "is_staff" in checks:
             return True
     return False
+
+async def get_user_guilds(bot : commands.AutoShardedBot, user):
+    guilds = []
+    for guild in bot.guilds:
+        guild : discord.Guild
+        member_ids = [member.id for member in guild.members]
+        if user.id in member_ids:
+            guilds.append(guild)
+    return guilds
+
+async def is_verified(bot, user):
+    if isinstance(user, discord.abc.User):
+        user_doc = await bot.users_db["connections"].find_one({"id" : user.id})
+        if not user_doc : return False
+        return user_doc["verified"]
+    else:
+        if not user : return False
+        return user["verified"]
+    
+async def get_uuid_profileid(bot : commands.Bot, user : discord.abc.User):
+    user_doc = await bot.users_db["connections"].find_one({"id" : user.id})
+    if not user_doc: return None, None
+    if "profile_id" not in user_doc.keys():
+        return user_doc["uuid"], None
+    else:
+        return user_doc["uuid"], user_doc["profile_id"]
+    

@@ -9,7 +9,7 @@ def enable_advanced_mode():
 # API Calls
 import aiohttp
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 # --------
 
@@ -28,6 +28,53 @@ from io import BytesIO as three
 from struct import unpack
 import re
 # -----------------
+
+
+class TimedEvent:
+    base_url = "https://hypixel-api.inventivetalent.org/api/skyblock/"
+    magma_url = "bosstimer/magma/estimatedSpawn"
+    bank_url = "bank/interest/estimate"
+    newyear_url = "newyear/estimate"
+    darkauction_url = "darkauction/estimate"
+    spooky_url = "spookyFestival/estimate"
+    winter_url = "winter/estimate"
+    jerry_url = "jerryWorkshop/estimate"
+    zoo_url = "zoo/estimate"
+    urls = [magma_url, bank_url, newyear_url, darkauction_url, 
+					spooky_url, winter_url, jerry_url, zoo_url]
+ 
+    def __init__(self, event_url):
+        self.event_url = event_url
+        self.event_name = None
+        self.estimate = None
+        self.event_on = None
+        self.event_in = None
+              
+        
+    async def set_data(self):
+        try:
+            async with (await session()).get(self.base_url + self.event_url) as data:
+              	json = await data.json(content_type=None)
+            if json != None and json["success"]:
+                self.event_name = re.sub(r"(\w)([A-Z])", r"\1 \2", json["type"]).capitalize()
+                self.estimate = json["estimate"] / 1000
+                self.event_on = datetime.utcfromtimestamp(self.estimate)
+                self.event_in = timedelta(seconds=self.estimate - time.time())
+        except Exception as e:
+            raise ExternalAPIError(reason=str(e))
+        
+    def update_without_api(self):
+        self.event_on = datetime.utcfromtimestamp(self.estimate)
+        self.event_in = timedelta(seconds=self.estimate - time.time())
+				
+
+    def __str__(self):
+        if self.event_name and self.estimate:
+            return f"{self.event_name}:{self.event_in}"
+        else:
+            return f"{self.event_url}"
+        
+
 
 def decode_inventory_data(raw):
 	"""Takes a raw string representing inventory data.
@@ -91,13 +138,14 @@ def decode_inventory_data(raw):
 def level_from_xp_table(xp, table):
 	"""Takes a list of xp requirements and a xp value.
 	Returns whatever level the thing should be at"""
-
+	needed = 0
 	for level, requirement in enumerate(table):
 		if requirement > xp:
+			needed = requirement - xp
 			break
 	else:
 		level += 1
-	return level
+	return level, needed
 
 class Item:
 	def __init__(self, nbt, slot_number):
@@ -271,7 +319,7 @@ class Pet:
 		cls.active = data.get('active', False)
 		cls.rarity = data.get('tier', 'COMMON').lower()
 		cls.internal_name = data.get('type', 'BEE')
-		cls.level = level_from_xp_table(cls.xp, pet_xp[cls.rarity])
+		cls.level, needed = level_from_xp_table(cls.xp, pet_xp[cls.rarity])
 		cls.name = pet_stats[cls.internal_name]['name']
 		cls.title = f'[Lvl {cls.level}] {cls.name}'
 		cls.xp_remaining = pet_xp[cls.rarity][-1] - cls.xp
@@ -550,10 +598,21 @@ class Player(ApiInterface):
 
 				for k, v in profile_ids.items():
 					self.profiles[v['cute_name']] = k
+
 				try:
 					self.discord = player["player"]["socialMedia"]["links"]["DISCORD"]
 				except:
 					self.discord = None
+     
+				if "rank" in player["player"] and player["player"]["rank"] != "NORMAL":
+					self.rank = player["player"]["rank"]
+				elif "newPackageRank" in player["player"]:
+					self.rank = player["player"]["newPackageRank"]
+				elif "packageRank" in player["player"]:
+					self.rank = player["player"]["packageRank"]
+				else:
+					self.rank = "Non-Donor"
+
 
 			except (KeyError, TypeError):
 				raise NeverPlayedSkyblockError(self.uname) from None
@@ -748,7 +807,7 @@ class Player(ApiInterface):
 			sum(self.minions.values())
 		)
 
-		self.minion_slots = level_from_xp_table(self.unique_minions, minion_slot_requirements)
+		self.minion_slots, needed = level_from_xp_table(self.unique_minions, minion_slot_requirements)
 
 		return self
 
@@ -765,11 +824,12 @@ class Player(ApiInterface):
 
 			self.skill_xp = {}
 			self.skills = {}
+			self.skills_needed_xp = {}
 
 			for skill in skills:
 				xp = int(v.get(f'experience_skill_{skill}', 0))
 				self.skill_xp[skill] = xp
-				self.skills[skill] = level_from_xp_table(
+				self.skills[skill], self.skills_needed_xp[skill] = level_from_xp_table(
 					xp,
 					runecrafting_xp_requirements if skill == 'runecrafting' else skill_xp_requirements
 				)
@@ -781,6 +841,11 @@ class Player(ApiInterface):
 				'runecrafting': 0
 			}
 			self.skills = {
+				'carpentry': 0,
+				'runecrafting': 0
+			}
+   
+			self.skills_needed_xp = {
 				'carpentry': 0,
 				'runecrafting': 0
 			}
@@ -799,20 +864,20 @@ class Player(ApiInterface):
 				level = self.achievements.get(achievement, 0)
 				self.skills[skill] = level
 				self.skill_xp[skill] = 0 if level == 0 else skill_xp_requirements[level - 1]
+				self.skills_needed_xp[skill] = 0 if level == 0 else skill_xp_requirements[level - 1]
 
 		self.skill_average = sum(self.skills[skill] for skill in skills if skill not in cosmetic_skills) / (len(skills) - len(cosmetic_skills))
-
 		self.slayer_xp = {}
 		self.slayers = {}
+		self.slayers_needed = {}
 		for slayer in slayers:
 			xp = v.get('slayer_bosses', {}).get(slayer, {}).get('xp', 0)
 			self.slayer_xp[slayer] = xp
-			self.slayers[slayer] = level_from_xp_table(xp, slayer_level_requirements[slayer])
-
+			self.slayers[slayer], self.slayers_needed[slayer] = level_from_xp_table(xp, slayer_level_requirements[slayer])
 		self.total_slayer_xp = sum(self.slayer_xp.values())
-
 		return self
-
+		
+		
 	def load_deaths(self, raise_on_double=True):
 		"""Loads a player's kills and deaths into RAM
 		Returns the player for efficent function chaining"""

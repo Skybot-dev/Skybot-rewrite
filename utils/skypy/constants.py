@@ -113,6 +113,10 @@ talismans = {re.compile(k): v for k, v in {
 
 skills = ['farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'taming', 'carpentry', 'runecrafting']
 cosmetic_skills = ['carpentry', 'runecrafting']
+skill_icons = {
+    'farming' : "🌾", 'mining' : "⛏️", 'combat' : "⚔️", 'foraging' : "🌳", 'fishing' : "🎣", 'enchanting' : "📖", 'alchemy' : "⚗️",
+    'taming' : "🐇", 'carpentry' : "🪑", 'runecrafting' : "☯️", 'carpentry' : "🪑"
+}
 slayers = ['zombie', 'spider', 'wolf']
 
 slayer_rewards = {

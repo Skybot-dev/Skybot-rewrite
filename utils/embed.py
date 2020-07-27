@@ -17,3 +17,6 @@ class Embed(discord.Embed):
     async def set_made_with_love_footer(self):
         devs = [str(self.bot.get_user(member)) for member in [201686355493912576, 564798709045526528, 280036328937357313]]
         return super().set_footer(text=f"Made with 💖 by {random.choice(devs)} and 2 others", icon_url=self.bot.user.avatar_url)
+
+    async def set_patron_footer(self):
+        return super().set_footer(text=f"Thanks for your support! https://patreon.com/skybotdevs", icon_url=self.bot.user.avatar_url)
