@@ -40,7 +40,7 @@ class Help(commands.Cog):
             await ctx.invoke(self.show_cog, arg=arg)
             return
 
-        raise commands.BadArgument(message="Command or Category")
+        raise commands.BadArgument(message="Command or Category not found")
         
     async def get_list_embed(self, ctx, expanded=False):
         staff = is_staff(ctx)
@@ -58,13 +58,12 @@ class Help(commands.Cog):
                 if hasattr(command, "commands") and expanded:
                     sub_cmds = [command.name for command in command.commands if not has_is_staff(command) or staff]
                     if sub_cmds:
-                        commands.append("`" + command.name + "`\n - " + "\n - ".join(sub_cmds))
+                        commands.append(f"`{command.name}`  *({'*, *'.join(sub_cmds)})*")
                     else:
                         commands.append(f"`{command.name}`")
                 else:
                     commands.append(f"`{command.name}`")
-            print(commands)
-            list_embed.add_field(name=name, value="\n".join(commands), inline=True)
+            list_embed.add_field(name=name, value=", ".join(commands), inline=False)
 
         list_embed.add_field(name="Links", value="[Apply as Dev](https://discord.gg/SQebkz9) | [Vote](https://top.gg/bot/630106665387032576/vote) | [Invite the Bot to your server](https://discordapp.com/oauth2/authorize?client_id=630106665387032576&scope=bot&permissions=8) | [Support Server](https://discord.gg/hmmfXud) | [Todos](https://trello.com/b/2yBAtx82/skybot-rewrite)", inline=False)
         return list_embed
@@ -104,7 +103,7 @@ class Help(commands.Cog):
             command = self.bot.get_command(arg)
             
         if has_is_staff(command) and not is_staff(ctx):
-            raise commands.BadArgument(message="Command or Category")
+            raise commands.BadArgument(message="Command or Category not found")
         
         if command.parents:
             command_embed = Embed(title=f"{ctx.prefix}{' '.join([command.name.capitalize() for command in command.parents])} {command.name.capitalize()}", bot=self.bot, user=ctx.author)
