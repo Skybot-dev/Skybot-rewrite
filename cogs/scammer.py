@@ -2,6 +2,7 @@ import discord
 from utils import logging
 from utils.util import is_staff
 from utils.skypy.skypy import fetch_uuid_uname
+from utils.skypy import skypy
 from inspect import Parameter
 from discord.ext import commands, tasks
 from utils.embed import Embed
@@ -21,7 +22,7 @@ class scammer(commands.Cog, name="Scammer"):
     async def scammer(self, ctx):
         await ctx.invoke(self.bot.get_command("help show_command"), arg="scammer")
 
-    @scammer.command()
+    @scammer.command(name="report", description="Report a Minecraft user for scamming. Must have photographic evidence ready")
     async def report(self, ctx):
         embeds = []
         config = self.bot.config
@@ -133,7 +134,7 @@ class scammer(commands.Cog, name="Scammer"):
             return await send_embeds(embeds)      
         await get_embed(0, embeds)
 
-    @scammer.command()
+    @scammer.command(name="check", description="check a Minecraft username against our scammer list", usage="[username]")
     async def check(self, ctx, username:str):
         name, uuid = await fetch_uuid_uname(username)
         if not uuid:
@@ -164,15 +165,10 @@ class scammer(commands.Cog, name="Scammer"):
         scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
         if scammer:
             return await ctx.send("Already on the scammer list")
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get("https://api.slothpixel.me/api/players/"+user) as resp:
-                    hypixelplayer = await resp.json()
-            discordname = hypixelplayer["links"]["DISCORD"]
-        except aiohttp.ContentTypeError as e:
-            return await ctx.send("An issue occured while processing that request. Please check that you have not mistyped anything and try again.")
+        player = await skypy.Player(self.bot.api_keys, uuid=uuid)
+        discordname = player.discord
         await self.bot.scammer_db["scammer_list"].insert_one({"_id": uuid, "reason": reason, "mod": str(ctx.author)})
-        scammer_embed = discord.Embed(title=user, description=report_reason, color=discord.Embed.Empty).add_field(name="discord:", value=discordname, inline=False).set_footer(text=f"added by {str(ctx.author)}")
+        scammer_embed = discord.Embed(title=username, description=reason, color=discord.Embed.Empty).add_field(name="discord:", value=discordname, inline=False).set_footer(text=f"added by {str(ctx.author)}")
         return await ctx.send(f"added {username} to the scammer list for reason: {reason}")
         guilds = self.bot.scammer_db["channels"].find({})
         async for guild in guilds:
@@ -289,6 +285,29 @@ class scammer(commands.Cog, name="Scammer"):
             logembed.add_field(name="mod", value=str(ctx.author))
             await logchannel.send(embed=logembed)
             await ctx.message.delete()
+
+
+    @scammer.command(name="CheckReport", description="Check the status of a player report by the ID given when the report was submitted", usage="[ID]")
+    async def CheckReport(self, ctx, report_id:str):
+        report = await self.bot.scammer_db["reports"].find_one({"_id": ObjectId(report_id)})
+        if not report:
+            await ctx.send("This report doesn't exist")
+        else:
+            embed = discord.Embed()
+            embed.set_author(name=report_id)
+            if report["status"] == "pending":
+                embed.description = "**Status:** pending"
+                embed.color = 0xffa500
+            elif report["status"] == "confirmed":
+                embed.description = "**Status:** confirmed"
+                embed.set_footer(text=f"confirmed by {report['mod']}")
+                embed.color = 0x00FF00
+            elif report["status"] == "rejected":
+                embed.description = "**Status:**"" rejected"
+                embed.set_footer(text=f"rejected by {report['mod']}")
+                embed.color = 0xff0000
+            embed.add_field(name=f"**Reporter:** {report['reporter']}", value=f"__Against:__ {report['name']}\n__Reason:__ {report['reason']}")
+            await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(scammer(bot))

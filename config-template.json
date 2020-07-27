@@ -24,5 +24,9 @@
         "api_key": "",
         "api_secret": ""
     },
-    "bot_invite": ""
+    "statuspage": {
+        "enabled": false
+    },
+    "bot_invite": "",
+    "status_list": [{"type": "playing", "content": "skyblock"}]
 }
