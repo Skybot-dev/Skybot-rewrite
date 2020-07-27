@@ -4,12 +4,13 @@ import copy
 import discord
 from loguru import logger
 from utils.util import is_staff, get_config
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot=bot
+        self.cycleStatus.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -47,7 +48,17 @@ class Admin(commands.Cog):
         end = time.time()
 
         await ctx.send(f'**{ctx.prefix}{new_ctx.command.qualified_name}** took **{end - start:.2f}s** to run')
-        
+
+    @tasks.loop(minutes=20)
+    async def cycleStatus(self):
+        choice = next(self.bot.status_list)
+        if choice["type"] == "playing":
+            await self.bot.change_presence(activity=discord.Game(name=choice["content"]))
+        elif choice["type"] == "watching":
+            await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=choice["content"]))
+        elif choice["type"] == "listening":
+            await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="a song"))
+        print(f"set status to {str(choice)}")
 
 
 def setup(bot):

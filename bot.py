@@ -8,8 +8,8 @@ from database.init import init_client
 from utils.util import get_config, trelloinit
 from utils.skypy import exceptions
 from utils import logging
-
-
+import random
+from itertools import cycle
 
 
 class Skybot(commands.AutoShardedBot):
@@ -26,6 +26,7 @@ class Skybot(commands.AutoShardedBot):
         self.users_db = self.db_client["users"]
         self.guilds_db = self.db_client["guilds"]
         self.scammer_db = self.db_client["scammer"]
+        self.status_list = cycle(self.config["status_list"])
         self.remove_command("help")
         
         self.api_keys = self.config["api_keys"]
@@ -62,6 +63,10 @@ class Skybot(commands.AutoShardedBot):
 
     async def on_ready(self):
         logger.info("Skybot ready.")
+
+
+
+
 
 
     async def on_message(self, message):
