@@ -34,6 +34,8 @@ class Skybot(commands.AutoShardedBot):
         if not self.api_keys:
             logger.warning("PLEASE SET AT LEAST ON API KEY, ELSE THE BOT WON'T WORK.")
 
+        self.events = []
+
         self.load_cogs()
         
 
@@ -65,19 +67,12 @@ class Skybot(commands.AutoShardedBot):
         logger.info("Skybot ready.")
 
 
-
-
-
-
     async def on_message(self, message):
-
         if not self.is_ready() : return
-
         await self.process_commands(message)
 
     async def on_message_edit(self, before, after):
         await self.wait_until_ready()
-
         await self.process_commands(after)
         
     async def on_command_completion(self, ctx):
@@ -108,11 +103,13 @@ class Skybot(commands.AutoShardedBot):
             return await ctx.send("You Provided too many arguments.")
 
         if isinstance(exception, commands.CommandInvokeError):
-            print(exception)
             if isinstance(exception.original, exceptions.NeverPlayedSkyblockError):
                 return await ctx.send("This player never played Hypixel Skyblock.", delete_after=7)
             if isinstance(exception.original, exceptions.BadNameError):
                 return await ctx.send("This username does not exist in Minecraft.", delete_after=7)
+            if isinstance(exception.original, exceptions.ExternalAPIError):
+                logger.exception(exception)
+                return await ctx.send("There has been an error while requesting the data from the API! Please try again after waiting some time..", delete_after=12)
 
         traceback_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
         logger.exception("".join(traceback_lines))

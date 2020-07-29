@@ -40,6 +40,15 @@ class TimedEvent:
     winter_url = "winter/estimate"
     jerry_url = "jerryWorkshop/estimate"
     zoo_url = "zoo/estimate"
+    icons = {
+			magma_url : "https://gamepedia.cursecdn.com/minecraft_gamepedia/e/ed/Magma_Cube.png",
+			bank_url : "https://banner2.cleanpng.com/20180607/tha/kisspng-percent-sign-percentage-symbol-computer-icons-plus-70-percent-5b18c699d863b8.1778837915283503618863.jpg",
+			newyear_url : "https://vignette.wikia.nocookie.net/minecraft/images/b/b4/CakeNew.png/",
+			darkauction_url : "https://png2.kisspng.com/dy/a7824f5601d92852e770bea849cd70bf/L0KzQYm3VcMyN5N1iJH0aYP2gLBuTfF2a6Vuh9C2YnnndLr1h71paZ5yfeQ2Z3H5db20gB9ueKZ5feQ2aXPyfsS0iPFudZZ3RadrMUC6dLLphcE2QJQ7RqYEMUSzSIeCUcUzP2k1T6Y5M0m1Q3B3jvc=/kisspng-auction-bidding-hammer-gavel-computer-icons-hammer-5b107dabe158c6.491408691527807403923.png",
+			spooky_url : "https://static.planetminecraft.com/files/resource_media/screenshot/1746/pumpkin-1510959008.png",
+			winter_url : "https://gamepedia.cursecdn.com/minecraft_de_gamepedia/c/cb/Schneeball.png",
+			jerry_url : "https://vignette.wikia.nocookie.net/hypixel-skyblock/images/5/58/Villager.png/",
+			zoo_url : "https://gamepedia.cursecdn.com/minecraft_gamepedia/0/0d/Ocelot.png"}
     urls = [magma_url, bank_url, newyear_url, darkauction_url, 
 					spooky_url, winter_url, jerry_url, zoo_url]
  
@@ -47,8 +56,8 @@ class TimedEvent:
         self.event_url = event_url
         self.event_name = None
         self.estimate = None
-        self.event_on = None
-        self.event_in = None
+        self.event_on : datetime = None
+        self.event_in : timedelta = None
               
         
     async def set_data(self):
@@ -73,7 +82,8 @@ class TimedEvent:
             return f"{self.event_name}:{self.event_in}"
         else:
             return f"{self.event_url}"
-        
+
+
 
 
 def decode_inventory_data(raw):
@@ -406,6 +416,7 @@ class ApiInterface:
 		await instance.__init__(*args, **kwargs)
 		return instance
 
+
 class Guild(ApiInterface):
 	"""A class representing a Skyblock guild.
 	Instantiate with either Guild(api_key, gname=guildname) or Guild(api_key, gid=guildid)
@@ -651,6 +662,12 @@ class Player(ApiInterface):
 			return f'https://mc-heads.net/avatar/{self.uuid}/{size}'
 		else:
 			return f'https://mc-heads.net/avatar/{self.uuid}'
+	
+	def body(self, size=None):
+		if size:
+			return f'https://mc-heads.net/body/{self.uuid}/{size}'
+		else:
+			return f'https://mc-heads.net/body/{self.uuid}'
 
 	async def set_profile_automatically(self, attribute=lambda player: player.load_skills_slayers(False).total_slayer_xp, threshold=None):
 		"""Sets a player profile automatically
@@ -921,6 +938,7 @@ class Player(ApiInterface):
 		v = self._api_data['members'][self.uuid]
 
 		self.join_date = datetime.fromtimestamp(v.get('first_join', 0) / 1000.0)
+		self.last_save = datetime.fromtimestamp(v.get('last_save', 0) / 1000.0)
 		self.fairy_souls_collected = v.get('fairy_souls_collected', 0)
 
 		return self
@@ -1058,6 +1076,12 @@ class Player(ApiInterface):
 
 		return stats
 
+	async def skylea_stats(self):
+		async with (await session()).get("https://sky.lea.moe/api/v2/profile/" + self.uuid) as data:
+			json = await data.json(content_type=None)
+		self.stats = json["profiles"][self.profile]["data"]["stats"]
+		
+		
 	def talisman_counts(self):
 		counts = {'common': 0, 'uncommon': 0, 'rare': 0, 'epic': 0, 'legendary': 0}
 		for tali in self.talismans:
@@ -1067,9 +1091,9 @@ class Player(ApiInterface):
 
 	async def auctions(self):
 		r = await self.__call_api__('/skyblock/auction', uuid=self.uuid, profile=self.profile)
-
+		
 		return [
-			{
+			({
 				'item': decode_inventory_data(auction['item_bytes']['data'])[0],
 				'start': auction['start'],
 				'end': auction['end'],
@@ -1077,7 +1101,7 @@ class Player(ApiInterface):
 				'highest_bid': auction['highest_bid_amount'],
 				'bids': auction['bids'],
 				'buyer': auction['bids'][-1]['bidder'] if auction['bids'] else None
-			}
+			}, decode_inventory_data(auction['item_bytes']['data'])[0])
 			for auction in r['auctions']
 			if auction['claimed'] is False
 		]
