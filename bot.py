@@ -110,7 +110,9 @@ class Skybot(commands.AutoShardedBot):
             if isinstance(exception.original, exceptions.ExternalAPIError):
                 logger.exception(exception)
                 return await ctx.send("There has been an error while requesting the data from the API! Please try again after waiting some time..", delete_after=12)
-
+            if isinstance(exception.original, exceptions.SkyblockError):
+                logger.exception(exception)
+                return await ctx.send("An unknown error occurred. Please report this to the devs.")
         traceback_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
         logger.exception("".join(traceback_lines))
         logger.exception(exception)
