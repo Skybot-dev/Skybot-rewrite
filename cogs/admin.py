@@ -90,6 +90,10 @@ class Admin(commands.Cog):
             await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="a song"))
         logger.debug(f"set status to {str(choice)}")
 
+    @cycleStatus.before_loop
+    async def before_cycleStatus(self):
+        await self.bot.wait_until_ready()
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))
