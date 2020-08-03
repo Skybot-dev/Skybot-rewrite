@@ -9,11 +9,11 @@ import copy
 
 skypy.enable_advanced_mode()
 
-rankColors = {'Mvp++': 0xFFAA00,
-                'Mvp+': 0x00FFFF,
-                'Mvp': 0x00FFFF,
-                'Vip+': 0x00FF00,
-                'Vip': 0x00FF00}
+rankColors = {'MVP++': 0xFFAA00,
+                'MVP+': 0x00FFFF,
+                'MVP': 0x00FFFF,
+                'VIP+': 0x00FF00,
+                'VIP': 0x00FF00}
 
 async def update_all_guilds(bot, user, name, uuid):
     user_guilds = await get_user_guilds(bot, user)

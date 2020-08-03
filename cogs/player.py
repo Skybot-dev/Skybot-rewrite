@@ -18,13 +18,13 @@ class Player(commands.Cog):
         pass
     
     def format_name(self, name):
-        return name + "'s" if name[-1] is not "s" else name
+        return name + "'s" if name[-1] != "s" else name
 
 
     async def shortcut_error(self, ctx):
         embed = await Embed(self.bot, ctx.author, title="Error", description="You can only use this shortcut if you link a username to your Discord account.").set_requested_by_footer()
         await ctx.send(embed=embed)
-        await ctx.invoke(self.bot.get_command("help show_command"), arg=self.skills)
+        await ctx.invoke(self.bot.get_command("help show_command"), arg=ctx.command.name)
 
     async def profile_not_found_error(self, ctx : commands.Context, player):
         embed = await Embed(self.bot, ctx.author, title="Error", description="Couldn't find the provided profile in your Skyblock account. Your profiles: " + ", ".join(player.profiles.keys())).set_requested_by_footer()
@@ -81,6 +81,7 @@ class Player(commands.Cog):
     async def get_stats_embed(self, ctx, player : skypy.Player):
         player.load_banking(False)
         player.load_misc(False)
+        player.load_skills_slayers(False)
         
         name = self.format_name(player.uname)
 
@@ -90,7 +91,11 @@ class Player(commands.Cog):
                 'speed': "🏃‍♂️", 'crit_chance': "🎲", 'crit_damage': "☠️", 'bonus_attack_speed': "🗯️", 
                 'intelligence': "🧠", 'sea_creature_chance': "🎣", 'magic_find': "⭐", 'pet_luck': "🦜"}
 
-        embed = Embed(self.bot, ctx.author, title=f"{name} Stats on {player.profile_name}")
+        if not player.enabled_api["skills"]:
+            description = f"Average skill level: {player.skill_average}"
+        else:
+            description = "Average skill level: Skills Api disabled"
+        embed = Embed(self.bot, ctx.author, title=f"{name} Stats on {player.profile_name}", description=description)
         await embed.set_patron_footer()
         embed.set_thumbnail(url=player.avatar())
 
@@ -226,6 +231,7 @@ class Player(commands.Cog):
     @commands.command(name="Profiles", description="Shows you all your available profiles on Skyblock.", usage="[Minecraft Username]")
     async def profiles(self, ctx, uname=None):
         uname = await self.get_uname(ctx, uname)
+        if not uname: return
         async with ctx.typing():
             embed = await self.get_profiles_embed(ctx, uname)
             await ctx.send(embed=embed)
@@ -233,6 +239,7 @@ class Player(commands.Cog):
     @commands.command(name="auctions", description="Shows you SKyblock auctions and information about them.", usage="[username]", aliases=["ah", "auction"])
     async def auctions(self, ctx, uname=None):
         uname = await self.get_uname(ctx, uname)
+        if not uname: return
         player : skypy.Player = await skypy.Player(keys=self.bot.api_keys, uname=uname)
         await player.set_profile_automatically()
         async with ctx.typing():

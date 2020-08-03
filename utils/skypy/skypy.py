@@ -886,17 +886,20 @@ class Player(ApiInterface):
 		self.slayer_total_spend = 0
 		digit = lambda x: [int(i) for i in x.split('_') if i.isdigit()]
 		costs = [100, 2000, 10000, 50000]
-		for slayer in slayers:
-			self.slayer_boss_kills[slayer] = {}
-			for i in v.get('slayer_bosses').get(slayer):
-				if i not in ["claimed_levels", "xp"]:
-					self.slayer_boss_kills[slayer][i] = v.get('slayer_bosses').get(slayer)[i]
-					self.total_boss_kills += v.get('slayer_bosses').get(slayer)[i]
-					self.slayer_total_spend += costs[digit(i)[0]] * v.get('slayer_bosses').get(slayer)[i]
-			xp = v.get('slayer_bosses', {}).get(slayer, {}).get('xp', 0)
-			self.slayer_xp[slayer] = xp
-			self.slayers[slayer], self.slayers_needed[slayer] = level_from_xp_table(xp, slayer_level_requirements[slayer])
-		self.total_slayer_xp = sum(self.slayer_xp.values())
+		if 'slayer_bosses' in v:
+			for slayer in slayers:
+				self.slayer_boss_kills[slayer] = {}
+				for i in v.get('slayer_bosses').get(slayer):
+					if i not in ["claimed_levels", "xp"]:
+						self.slayer_boss_kills[slayer][i] = v.get('slayer_bosses').get(slayer)[i]
+						self.total_boss_kills += v.get('slayer_bosses').get(slayer)[i]
+						self.slayer_total_spend += costs[digit(i)[0]] * v.get('slayer_bosses').get(slayer)[i]
+				xp = v.get('slayer_bosses', {}).get(slayer, {}).get('xp', 0)
+				self.slayer_xp[slayer] = xp
+				self.slayers[slayer], self.slayers_needed[slayer] = level_from_xp_table(xp, slayer_level_requirements[slayer])
+			self.total_slayer_xp = sum(self.slayer_xp.values())
+		else:
+			self.enabled_api['skills'] = False
 		return self
 		
 		
