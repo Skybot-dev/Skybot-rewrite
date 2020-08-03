@@ -172,7 +172,7 @@ class Skyblock(commands.Cog):
         await ctx.invoke(self.bot.get_command("help show_command"), arg="reminder")
 
     @reminder.command(name="set")
-    async def set_reminder(self, ctx, event : EventConverter=None):
+    async def set_reminder(self, ctx, event : EventConverter):
         event : TimedEvent = self.get_event(event)
         if not event.estimate:
             await event.set_data()

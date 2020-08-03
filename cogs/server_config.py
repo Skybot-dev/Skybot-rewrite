@@ -512,7 +512,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             
         await ctx.send(f"Changed role of `verifyrole` to {role.mention}")
         await ctx.invoke(self.verifyrole_on)
-        if "role" in doc.keys():
+        if doc and "role" in doc.keys():
             await on_role_changed(ctx, self.bot, ctx.guild.get_role(doc["role"]), role)
         else:
             await on_role_changed(ctx, self.bot, None, role)
