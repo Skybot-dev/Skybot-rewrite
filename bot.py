@@ -69,6 +69,7 @@ class Skybot(commands.AutoShardedBot):
 
     async def on_ready(self):
         logger.info("Skybot ready.")
+        await self.bot.change_presence(activity=discord.Game(name=self.status_list[0]["content"]))
 
 
     async def on_message(self, message):

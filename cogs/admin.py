@@ -79,7 +79,7 @@ class Admin(commands.Cog):
 
         await ctx.send(f'**{ctx.prefix}{new_ctx.command.qualified_name}** took **{end - start:.2f}s** to run')
 
-    @tasks.loop(minutes=20)
+    @tasks.loop(minutes=1)
     async def cycleStatus(self):
         choice = next(self.bot.status_list)
         if choice["type"] == "playing":
