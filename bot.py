@@ -47,7 +47,7 @@ class Skybot(commands.AutoShardedBot):
         if not message.guild:
             return commands.when_mentioned_or(self.config["default_prefix"])(self, message)
 
-        prefix = await self.guilds_db["prefixes"].find_one({"guild_id" : message.guild.id})
+        prefix = await self.guilds_db["prefixes"].find_one({"_id" : message.guild.id})
         if prefix is not None:
             return commands.when_mentioned_or(prefix["prefix"])(self, message)
         else:
@@ -114,7 +114,9 @@ class Skybot(commands.AutoShardedBot):
             if isinstance(exception.original, exceptions.ExternalAPIError):
                 logger.exception(exception)
                 return await ctx.send("There has been an error while requesting the data from the API! Please try again after waiting some time..", delete_after=12)
-
+            if isinstance(exception.original, exceptions.SkyblockError):
+                logger.exception(exception)
+                return await ctx.send("An unknown error occurred. Please report this to the devs.")
         traceback_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
         logger.exception("".join(traceback_lines))
         logger.exception(exception)
