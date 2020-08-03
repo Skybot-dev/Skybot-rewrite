@@ -67,7 +67,8 @@ class Misc(commands.Cog, name="Misc"):
     
     @suggestion.command(name="view", description="view a suggestion by its ID", usage="[ID]", hidden=True)
     async def view(self, ctx, id:str):
-        await ctx.send(embed=await self.view_suggestion(ctx, id))
+        embed = await self.view_suggestion(ctx, id)
+        await ctx.send(embed=embed)
     
     @suggestion.command(name="list", description="view a list of all suggestions", aliases=["all"])
     @commands.check(is_staff)
@@ -89,7 +90,7 @@ class Misc(commands.Cog, name="Misc"):
         suggestion_doc = await self.bot.admin_db["suggestions"].find_one({"_id": ObjectId(id)})
         if not suggestion_doc:
             return await ctx.send("Could not find a suggestion with that ID")    
-        card =  self.client.get_card(suggestion_doc["card"])
+        card =  self.my_board.get_card(suggestion_doc["card"])
         List = [z for z in self.my_board.all_lists() if z.name.lower() == section.lower()]
         if not List:
             return await ctx.send("Could not find that category")
@@ -109,7 +110,7 @@ class Misc(commands.Cog, name="Misc"):
         suggestion_doc = await self.bot.admin_db["suggestions"].find_one_and_delete({"_id": ObjectId(id)})
         if not suggestion_doc:
             return await ctx.send("Could not find a suggestion with that ID")    
-        card =  self.client.get_card(suggestion_doc["card"])
+        card = self.my_board.get_card(suggestion_doc["card"])
         card.delete()
         await ctx.send(f"successfully deleted suggestion `{id}`")
     

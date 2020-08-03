@@ -295,19 +295,13 @@ async def fetch_uuid_uname(uname_or_uuid, _depth=0):
 	except (asyncio.TimeoutError, TryNormal):
 		# if mcheads fails, we try the normal minecraft API
 		try:
-			async with s.get(f'https://api.mojang.com/users/profiles/minecraft/{uname_or_uuid}') as r:
+			async with s.get(f'https://api.ashcon.app/mojang/v2/user/{uname_or_uuid}') as r:
 
 				json = await r.json(content_type=None)
 				if json is None:
+					raise BadNameError(uname_or_uuid, 'Malformed uuid or username') from None
 
-					async with s.get(f'https://api.mojang.com/user/profiles/{uname_or_uuid}/names') as r:
-						json = await r.json(content_type=None)
-						if json is None:
-							raise BadNameError(uname_or_uuid, 'Malformed uuid or username') from None
-
-						return json[-1]['name'], uname_or_uuid
-
-				return json['name'], json['id']
+				return json['username'], json['uuid'].replace("-", "")
 		except asyncio.TimeoutError:
 			raise ExternalAPIError('Could not connect to https://mc-heads.net') from None
 	except aiohttp.client_exceptions.ClientResponseError as e:

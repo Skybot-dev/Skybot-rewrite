@@ -622,7 +622,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             await self.on_eventchannel_changed(ctx, self.bot, doc["message"], doc["channel"])
         else:
             await self.config["eventchannel"].insert_one({"_id" : ctx.guild.id, "on" : True, "channel" : channel.id, "message" : msg.id})
-            await on_eventchannel_changed(ctx, self.bot, None, None)
+            await self.on_eventchannel_changed(ctx, self.bot, None, None)
             
         self.eventchannel_msgs.add(msg)
         
@@ -660,7 +660,9 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
                         self.eventchannel_msgs.remove(msg)
             if doc["on"] and doc["message"] not in [msg.id for msg in self.eventchannel_msgs]:
                 channel = self.bot.get_channel(doc["channel"])
+                if not channel: continue
                 msg = await channel.fetch_message(doc["message"])
+                if not msg: continue
                 self.eventchannel_msgs.add(msg)
         msgs = copy.copy(self.eventchannel_msgs)
         for msg in msgs:

@@ -113,11 +113,12 @@ class Player(commands.Cog):
         
         return embed
         
-
-    
     
     async def get_slayer_embed(self, ctx, player : skypy.Player):
         player.load_skills_slayers(False)
+        if not player.enabled_api["skills"]:
+            return await Embed(self.bot, ctx.author, title="Error", description="Your skills API is disabled. Please enable it and try again.").set_requested_by_footer()
+
         slayerNames = {"zombie": "Revenent Horror", "spider": "Tarantula Broodfather", "wolf": "Sven Packmaster"}
         embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} slayer stats on {player.profile_name}").set_requested_by_footer()
         for slayer in player.slayers:
@@ -131,9 +132,7 @@ class Player(commands.Cog):
         embed.add_field(name="Total Boss Kills",  value=f"{player.total_boss_kills} kills")
         embed.add_field(name="Total Spend", value=f"{player.slayer_total_spend:,} coins")
         return embed
-        if not player.enabled_api["skills"]:
-            return await Embed(self.bot, ctx.author, title="Error", description="Your skills API is disabled. Please enable it and try again.").set_requested_by_footer()
-
+        
     
     
     async def get_profiles_embed(self, ctx, uname):
