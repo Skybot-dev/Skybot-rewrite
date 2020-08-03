@@ -22,7 +22,8 @@
     },
     "trello": {
         "api_key": "",
-        "api_secret": ""
+        "api_secret": "",
+        "board_id": ""
     },
     "statuspage": {
         "enabled": false
