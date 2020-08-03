@@ -194,7 +194,7 @@ async def add_rankroles(bot, roles, member):
         if not doc: return
         
         player = await skypy.Player(keys=bot.api_keys, uuid=doc["uuid"])
-        rank = player.rank.replace("_PLUS", "+").replace("_", "").capitalize()
+        rank = player.rank.replace("_PLUS", "+").replace("_", "").upper()
 
         for role in roles:
             if role.name == rank:
