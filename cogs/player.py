@@ -91,7 +91,7 @@ class Player(commands.Cog):
                 'speed': "🏃‍♂️", 'crit_chance': "🎲", 'crit_damage': "☠️", 'bonus_attack_speed': "🗯️", 
                 'intelligence': "🧠", 'sea_creature_chance': "🎣", 'magic_find': "⭐", 'pet_luck': "🦜"}
 
-        if not player.enabled_api["skills"]:
+        if player.enabled_api["skills"]:
             description = f"Average skill level: {player.skill_average}"
         else:
             description = "Average skill level: Skills Api disabled"
