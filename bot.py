@@ -24,6 +24,10 @@ class Skybot(commands.AutoShardedBot):
         self.config = get_config()
         self.admin_db = self.db_client["management"]
         self.users_db = self.db_client["users"]
+        if self.config["slothpixel_key"]:
+            self.slothpixel_key_string = f'?key={self.config["slothpixel_key"]}'
+        else:
+            self.slothpixel_key_string = ''
         self.guilds_db = self.db_client["guilds"]
         self.scammer_db = self.db_client["scammer"]
         self.status_list = cycle(self.config["status_list"])
@@ -34,6 +38,8 @@ class Skybot(commands.AutoShardedBot):
         if not self.api_keys:
             logger.warning("PLEASE SET AT LEAST ON API KEY, ELSE THE BOT WON'T WORK.")
 
+        self.events = []
+
         self.load_cogs()
         
 
@@ -41,7 +47,7 @@ class Skybot(commands.AutoShardedBot):
         if not message.guild:
             return commands.when_mentioned_or(self.config["default_prefix"])(self, message)
 
-        prefix = await self.guilds_db["prefixes"].find_one({"guild_id" : message.guild.id})
+        prefix = await self.guilds_db["prefixes"].find_one({"_id" : message.guild.id})
         if prefix is not None:
             return commands.when_mentioned_or(prefix["prefix"])(self, message)
         else:
@@ -65,19 +71,12 @@ class Skybot(commands.AutoShardedBot):
         logger.info("Skybot ready.")
 
 
-
-
-
-
     async def on_message(self, message):
-
         if not self.is_ready() : return
-
         await self.process_commands(message)
 
     async def on_message_edit(self, before, after):
         await self.wait_until_ready()
-
         await self.process_commands(after)
         
     async def on_command_completion(self, ctx):
@@ -108,12 +107,16 @@ class Skybot(commands.AutoShardedBot):
             return await ctx.send("You Provided too many arguments.")
 
         if isinstance(exception, commands.CommandInvokeError):
-            print(exception)
             if isinstance(exception.original, exceptions.NeverPlayedSkyblockError):
                 return await ctx.send("This player never played Hypixel Skyblock.", delete_after=7)
             if isinstance(exception.original, exceptions.BadNameError):
                 return await ctx.send("This username does not exist in Minecraft.", delete_after=7)
-
+            if isinstance(exception.original, exceptions.ExternalAPIError):
+                logger.exception(exception)
+                return await ctx.send("There has been an error while requesting the data from the API! Please try again after waiting some time..", delete_after=12)
+            if isinstance(exception.original, exceptions.SkyblockError):
+                logger.exception(exception)
+                return await ctx.send("An unknown error occurred. Please report this to the devs.")
         traceback_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
         logger.exception("".join(traceback_lines))
         logger.exception(exception)

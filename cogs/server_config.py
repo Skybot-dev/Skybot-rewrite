@@ -229,9 +229,8 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
         self.config = self.bot.guilds_db
         self.settings = ["prefixes", "banscammers", "verifynick", "verifyrole", "rankroles", "eventchannel"]
         self.eventchannel_msgs = set()
-        self.events = []
         self.eventchannel_loop.start()
-        self.fetch_event_data.start()
+        
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -239,7 +238,6 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
 
     def cog_unload(self):
         self.eventchannel_loop.cancel()
-        self.fetch_event_data.cancel()
     
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -313,11 +311,11 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
     @prefix.command()
     async def set(self, ctx, arg):
         prefixes_coll = self.config["prefixes"]
-        guild_db = await prefixes_coll.find_one({"guild_id" : ctx.guild.id})
+        guild_db = await prefixes_coll.find_one({"_id" : ctx.guild.id})
         if guild_db:
             await prefixes_coll.update_one(guild_db, {"$set" : {"prefix" : arg}})
             return await ctx.send(f"Your server's prefix has been set to `{arg}`")
-        await prefixes_coll.insert_one({"guild_id" : ctx.guild.id, "prefix" : arg})
+        await prefixes_coll.insert_one({"_id" : ctx.guild.id, "prefix" : arg})
         return await ctx.send(f"Your server's prefix has been set to `{arg}`")
 
     @commands.has_guild_permissions(administrator=True)
@@ -325,7 +323,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
     @commands.guild_only()
     @prefix.command()
     async def reset(self, ctx):
-        result = await self.config["prefixes"].delete_one({"guild_id" : ctx.guild.id})
+        result = await self.config["prefixes"].delete_one({"_id" : ctx.guild.id})
         if result.deleted_count > 0:
             return await ctx.send("Prefix has been reset to `" + self.bot.config["default_prefix"] + "`")
         return await ctx.send("Nothing changed. You haven't changed the prefix yet, use the `set` argument.")
@@ -335,7 +333,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
     @commands.guild_only()
     @prefix.command()
     async def get(self, ctx):
-        prefix = await self.config["prefixes"].find_one({"guild_id" : ctx.guild.id})
+        prefix = await self.config["prefixes"].find_one({"_id" : ctx.guild.id})
         if prefix:
             return await ctx.send("My prefix here is `" + prefix["prefix"] + "`")
         return await ctx.send("My prefix here is `" + self.bot.config["default_prefix"] + "`")
@@ -643,23 +641,13 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
         embed = Embed(self.bot, None, title="Timed Events")
         await embed.set_patron_footer()
         
-        for event in self.events:
+        for event in self.bot.events:
             event.update_without_api()
             embed.add_field(name=event.event_name, value=f"Event in:\n**{str(event.event_in)[:-7]}**")
         return embed
     
-    @tasks.loop(minutes=1)
-    async def fetch_event_data(self):
-        if self.events and len(self.events) == len(skypy.TimedEvent.urls):
-            for event in self.events:
-                await event.set_data()
-        else:
-            for event in skypy.TimedEvent.urls:
-                event = skypy.TimedEvent(event)
-                await event.set_data()
-                self.events.append(event)
     
-    @tasks.loop(seconds=3)
+    @tasks.loop(seconds=8)
     async def eventchannel_loop(self):
         docs = self.config["eventchannel"].find({})
         embed = await self.get_event_embed()
@@ -685,9 +673,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
     async def before_eventchannel_loop(self):
         await self.bot.wait_until_ready()
         
-    @fetch_event_data.before_loop
-    async def before_fetch_event_data(self):
-        await self.bot.wait_until_ready()
+    
     
     
 def setup(bot):

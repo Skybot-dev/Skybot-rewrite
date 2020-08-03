@@ -9,6 +9,7 @@
         "default_db" : ""
     },
     "staff_role" : 1234,
+    "slothpixel_key": "",
     "support_guild": {
 	"ID": 0,
 	"invite_link": "https://discord.com/invite/inviteCode",

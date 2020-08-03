@@ -88,7 +88,7 @@ class Admin(commands.Cog):
             await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=choice["content"]))
         elif choice["type"] == "listening":
             await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="a song"))
-        print(f"set status to {str(choice)}")
+        logger.debug(f"set status to {str(choice)}")
 
 
 def setup(bot):
