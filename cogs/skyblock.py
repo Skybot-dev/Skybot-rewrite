@@ -1,5 +1,6 @@
 import discord
 import asyncio
+import aiohttp
 from discord.ext import commands, tasks
 from utils.events import EventConverter
 from utils.embed import Embed
