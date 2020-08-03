@@ -24,6 +24,10 @@ class Skybot(commands.AutoShardedBot):
         self.config = get_config()
         self.admin_db = self.db_client["management"]
         self.users_db = self.db_client["users"]
+        if self.config["slothpixel_key"]:
+            self.slothpixel_key_string = f'?key={self.config["slothpixel_key"]}'
+        else:
+            self.slothpixel_key_string = ''
         self.guilds_db = self.db_client["guilds"]
         self.scammer_db = self.db_client["scammer"]
         self.status_list = cycle(self.config["status_list"])

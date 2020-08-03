@@ -118,10 +118,19 @@ class Player(commands.Cog):
     
     async def get_slayer_embed(self, ctx, player : skypy.Player):
         player.load_skills_slayers(False)
-        print(player.slayers)
-        print(player.slayer_xp)
-        print(player.total_slayer_xp)
-        print(player.slayers_needed)
+        slayerNames = {"zombie": "Revenent Horror", "spider": "Tarantula Broodfather", "wolf": "Sven Packmaster"}
+        embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} slayer stats on {player.profile_name}").set_requested_by_footer()
+        for slayer in player.slayers:
+            embed.add_field(name=f"{slayerNames[slayer]}\nLEVEL {player.slayers[slayer]}", value=f"{player.slayers_needed[slayer]:,} XP\nto next level")
+        for slayer in player.slayers:
+            string = ''
+            for i, bossLevel in enumerate(player.slayer_boss_kills[slayer]):
+                string += f"\n**Tier {i + 1}** Kills: {player.slayer_boss_kills[slayer][bossLevel]}"
+            embed.add_field(name="\u200b", value=string)
+        embed.add_field(name="Total Slayer XP", value=f"{player.total_slayer_xp:,} XP")
+        embed.add_field(name="Total Boss Kills",  value=f"{player.total_boss_kills} kills")
+        embed.add_field(name="Total Spend", value=f"{player.slayer_total_spend:,} coins")
+        return embed
         if not player.enabled_api["skills"]:
             return await Embed(self.bot, ctx.author, title="Error", description="Your skills API is disabled. Please enable it and try again.").set_requested_by_footer()
 
