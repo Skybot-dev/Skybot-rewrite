@@ -43,7 +43,7 @@ class Skybot(commands.AutoShardedBot):
         if not message.guild:
             return commands.when_mentioned_or(self.config["default_prefix"])(self, message)
 
-        prefix = await self.guilds_db["prefixes"].find_one({"guild_id" : message.guild.id})
+        prefix = await self.guilds_db["prefixes"].find_one({"_id" : message.guild.id})
         if prefix is not None:
             return commands.when_mentioned_or(prefix["prefix"])(self, message)
         else:
