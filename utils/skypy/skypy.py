@@ -68,6 +68,7 @@ class TimedEvent:
 				self.estimate = json["estimate"] / 1000
 				self.event_on = datetime.utcfromtimestamp(self.estimate)
 				self.event_in = timedelta(seconds=self.estimate - time.time())
+				self.event_in = self.event_in if self.event_in > timedelta(seconds=0) else timedelta(seconds=0)
 				return self
 		except:
 			pass
@@ -77,7 +78,7 @@ class TimedEvent:
 	def update_without_api(self):
 		self.event_on = datetime.utcfromtimestamp(self.estimate)
 		self.event_in = timedelta(seconds=self.estimate - time.time())
-				
+		self.event_in = self.event_in if self.event_in > timedelta(seconds=0) else timedelta(seconds=0)
 
 	def __str__(self):
 		if self.event_name and self.estimate:

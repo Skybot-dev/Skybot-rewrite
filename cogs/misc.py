@@ -212,7 +212,7 @@ class Misc(commands.Cog, name="Misc"):
         for guild in guilds:
             guild_members.append(len(guild.members))
         guilds_sorted = sorted(guild_members, reverse=True)[:10]
-        guilds_sorted_str = [str(guild) for guild in guilds_sorted]
+        guilds_sorted_str = [str(place + 1) + ". " + str(guild) for place, guild in enumerate(guilds_sorted)]
         final_list = "\n".join(guilds_sorted_str)
         embed = Embed(title="Statistics", bot=self.bot, user=None)
         embed.add_field(name="Servers:", value=len(guilds), inline=False)
