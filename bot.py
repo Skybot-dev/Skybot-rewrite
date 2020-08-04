@@ -106,8 +106,14 @@ class Skybot(commands.AutoShardedBot):
             return await ctx.send("It seems like you do not have permissions to run this.")
         if isinstance(exception, commands.TooManyArguments):
             return await ctx.send("You Provided too many arguments.")
+        
 
         if isinstance(exception, commands.CommandInvokeError):
+            if isinstance(exception.original, discord.Forbidden):
+                try:
+                    return await ctx.author.send(f"I couldn't respond in {ctx.channel.mention}, because I have no permissions to send messages there.")
+                except:
+                    pass
             if isinstance(exception.original, exceptions.NeverPlayedSkyblockError):
                 return await ctx.send("This player never played Hypixel Skyblock.", delete_after=7)
             if isinstance(exception.original, exceptions.BadNameError):

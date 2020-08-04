@@ -61,9 +61,6 @@ class Admin(commands.Cog):
                 embed.add_field(name="Last reset", value=str(cmd["date"])[:-7])
         await ctx.send(embed=embed)
         
-        
-        
-    
     
     @commands.check(is_staff)
     @commands.command()
