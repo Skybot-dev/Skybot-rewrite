@@ -31,16 +31,16 @@ import re
 
 
 class TimedEvent:
-    base_url = "https://hypixel-api.inventivetalent.org/api/skyblock/"
-    magma_url = "bosstimer/magma/estimatedSpawn"
-    bank_url = "bank/interest/estimate"
-    newyear_url = "newyear/estimate"
-    darkauction_url = "darkauction/estimate"
-    spooky_url = "spookyFestival/estimate"
-    winter_url = "winter/estimate"
-    jerry_url = "jerryWorkshop/estimate"
-    zoo_url = "zoo/estimate"
-    icons = {
+	base_url = "https://hypixel-api.inventivetalent.org/api/skyblock/"
+	magma_url = "bosstimer/magma/estimatedSpawn"
+	bank_url = "bank/interest/estimate"
+	newyear_url = "newyear/estimate"
+	darkauction_url = "darkauction/estimate"
+	spooky_url = "spookyFestival/estimate"
+	winter_url = "winter/estimate"
+	jerry_url = "jerryWorkshop/estimate"
+	zoo_url = "zoo/estimate"
+	icons = {
 			magma_url : "https://gamepedia.cursecdn.com/minecraft_gamepedia/e/ed/Magma_Cube.png",
 			bank_url : "https://banner2.cleanpng.com/20180607/tha/kisspng-percent-sign-percentage-symbol-computer-icons-plus-70-percent-5b18c699d863b8.1778837915283503618863.jpg",
 			newyear_url : "https://vignette.wikia.nocookie.net/minecraft/images/b/b4/CakeNew.png/",
@@ -49,43 +49,41 @@ class TimedEvent:
 			winter_url : "https://gamepedia.cursecdn.com/minecraft_de_gamepedia/c/cb/Schneeball.png",
 			jerry_url : "https://vignette.wikia.nocookie.net/hypixel-skyblock/images/5/58/Villager.png/",
 			zoo_url : "https://gamepedia.cursecdn.com/minecraft_gamepedia/0/0d/Ocelot.png"}
-    urls = [magma_url, bank_url, newyear_url, darkauction_url, 
+	urls = [magma_url, bank_url, newyear_url, darkauction_url, 
 					spooky_url, winter_url, jerry_url, zoo_url]
  
-    def __init__(self, event_url):
-        self.event_url = event_url
-        self.event_name = None
-        self.estimate = None
-        self.event_on : datetime = None
-        self.event_in : timedelta = None
-              
-        
-    async def set_data(self):
-		while True:
-			try:
-				async with (await session()).get(self.base_url + self.event_url) as data:
-					json = await data.json(content_type=None)
-				if json != None and json["success"]:
-					self.event_name = re.sub(r"(\w)([A-Z])", r"\1 \2", json["type"]).capitalize()
-					self.estimate = json["estimate"] / 1000
-					self.event_on = datetime.utcfromtimestamp(self.estimate)
-					self.event_in = timedelta(seconds=self.estimate - time.time())
-					return self
-			except:
-				pass
-			await asyncio.sleep(3)
+	def __init__(self, event_url):
+		self.event_url = event_url
+		self.event_name = None
+		self.estimate = None
+		self.event_on : datetime = None
+		self.event_in : timedelta = None
+
+	async def set_data(self):
+		try:
+			async with (await session()).get(self.base_url + self.event_url) as data:
+				json = await data.json(content_type=None)
+			if json != None and json["success"]:
+				self.event_name = re.sub(r"(\w)([A-Z])", r"\1 \2", json["type"]).capitalize()
+				self.estimate = json["estimate"] / 1000
+				self.event_on = datetime.utcfromtimestamp(self.estimate)
+				self.event_in = timedelta(seconds=self.estimate - time.time())
+				return self
+		except:
+			pass
+
             
         
-    def update_without_api(self):
-        self.event_on = datetime.utcfromtimestamp(self.estimate)
-        self.event_in = timedelta(seconds=self.estimate - time.time())
+	def update_without_api(self):
+		self.event_on = datetime.utcfromtimestamp(self.estimate)
+		self.event_in = timedelta(seconds=self.estimate - time.time())
 				
 
-    def __str__(self):
-        if self.event_name and self.estimate:
-            return f"{self.event_name}:{self.event_in}"
-        else:
-            return f"{self.event_url}"
+	def __str__(self):
+		if self.event_name and self.estimate:
+			return f"{self.event_name}:{self.event_in}"
+		else:
+			return f"{self.event_url}"
 
 
 
