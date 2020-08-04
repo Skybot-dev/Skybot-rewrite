@@ -213,10 +213,13 @@ class Player(commands.Cog):
     async def stats(self, ctx, uname=None, profile=None):
         player : skypy.Player = await self.make_player(ctx, uname, profile)
         if not player: return
-        await player.skylea_stats()
-        async with ctx.typing():
-            embed = await self.get_stats_embed(ctx, player)
-            await ctx.send(embed=embed)
+        success = await player.skylea_stats()
+        if success:
+            async with ctx.typing():
+                embed = await self.get_stats_embed(ctx, player)
+                await ctx.send(embed=embed)
+        else:
+            await ctx.send(f"An error occurred, perhaps this user has not played skyblock.")
         
     
     @commands.command(name="slayer", description="Shows you Slayer stats.", usage="[username] ([profile])", aliases = ["slay"])

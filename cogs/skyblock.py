@@ -219,10 +219,11 @@ class Skyblock(commands.Cog):
         docs = self.reminders.find({})
         async for doc in docs:
             event = self.get_event(TimedEvent(doc["event"]))
-            if not event.event_in:
+            if not event.event_on:
                 return
-            event_in = event.event_in - timedelta(minutes=5) 
-            if event_in.total_seconds() < time.time():
+
+            estimate = event.estimate - 300 #minutes before
+            if estimate < time.time():
                 try:
                     user = self.bot.get_user(doc["id"])
                     await user.send(f"This is a reminder for {event.event_name}. The event will be in 5 minutes, so get yourself ready. The reminder has been removed.")

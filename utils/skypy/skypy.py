@@ -1089,9 +1089,16 @@ class Player(ApiInterface):
 		return stats
 
 	async def skylea_stats(self):
-		async with (await session()).get("https://sky.lea.moe/api/v2/profile/" + self.uuid) as data:
-			json = await data.json(content_type=None)
-		self.stats = json["profiles"][self.profile]["data"]["stats"]
+		try:
+			async with (await session()).get("https://sky.lea.moe/api/v2/profile/" + self.uuid) as data:
+				json = await data.json(content_type=None)
+				if data.status == 200:
+					self.stats = json["profiles"][self.profile]["data"]["stats"]
+					return True
+		except aiohttp.ClientResponseError:
+			return False
+
+		
 		
 		
 	def talisman_counts(self):
