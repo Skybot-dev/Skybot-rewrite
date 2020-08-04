@@ -11,7 +11,7 @@ def get_config():
 def trelloinit():
     trelloconfig = get_config()["trello"]
     client = TrelloClient(api_key=trelloconfig["api_key"], api_secret=trelloconfig["api_secret"])
-    return client.get_board(trelloconfig["board_id"])
+    return (client, client.get_board(trelloconfig["board_id"]))
 
 def is_staff(ctx):
     if isinstance(ctx.author, discord.Member):
