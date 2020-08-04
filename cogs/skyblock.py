@@ -187,7 +187,7 @@ class Skyblock(commands.Cog):
             
 
     @reminder.command(name="remove")
-    async def remove_reminder(self, ctx, event : EventConverter=None):
+    async def remove_reminder(self, ctx, event : EventConverter):
         event : TimedEvent = self.get_event(event)
         docs = self.reminders.find({"id" : ctx.author.id})
         async for doc in docs:
