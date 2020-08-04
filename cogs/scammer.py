@@ -18,7 +18,7 @@ class scammer(commands.Cog, name="Scammer"):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.group(invoke_without_command=True, name="scammer")
+    @commands.group(invoke_without_command=True, name="scammer", description="commands for the scammer list.", aliases=["scam"], usage="[check/report]")
     async def scammer(self, ctx):
         await ctx.invoke(self.bot.get_command("help show_command"), arg="scammer")
 
