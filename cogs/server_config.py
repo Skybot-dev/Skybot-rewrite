@@ -113,7 +113,7 @@ async def get_nick(bot, member, format):
     if not await is_verified(bot, user_doc): return None
     player = await skypy.Player(keys=bot.api_keys, uuid=user_doc["uuid"])
     
-    nick = format.replace("{ign}", player.uname).replace("{rank}", player.rank.replace("_PLUS", "+").replace("_", " ").capitalize())
+    nick = format.replace("{ign}", player.uname).replace("{rank}", player.rank.replace("_PLUS", "+").replace("_", " ").upper())
     return nick
 
 async def update_nicks(ctx, bot):
