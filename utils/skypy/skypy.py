@@ -61,16 +61,20 @@ class TimedEvent:
               
         
     async def set_data(self):
-        try:
-            async with (await session()).get(self.base_url + self.event_url) as data:
-              	json = await data.json(content_type=None)
-            if json != None and json["success"]:
-                self.event_name = re.sub(r"(\w)([A-Z])", r"\1 \2", json["type"]).capitalize()
-                self.estimate = json["estimate"] / 1000
-                self.event_on = datetime.utcfromtimestamp(self.estimate)
-                self.event_in = timedelta(seconds=self.estimate - time.time())
-        except Exception as e:
-            raise ExternalAPIError(reason=str(e))
+		while True:
+			try:
+				async with (await session()).get(self.base_url + self.event_url) as data:
+					json = await data.json(content_type=None)
+				if json != None and json["success"]:
+					self.event_name = re.sub(r"(\w)([A-Z])", r"\1 \2", json["type"]).capitalize()
+					self.estimate = json["estimate"] / 1000
+					self.event_on = datetime.utcfromtimestamp(self.estimate)
+					self.event_in = timedelta(seconds=self.estimate - time.time())
+					return self
+			except:
+				pass
+			await asyncio.sleep(3)
+            
         
     def update_without_api(self):
         self.event_on = datetime.utcfromtimestamp(self.estimate)
@@ -844,6 +848,8 @@ class Player(ApiInterface):
 					xp,
 					runecrafting_xp_requirements if skill == 'runecrafting' else skill_xp_requirements
 				)
+				if self.skills[skill] == 24 and skill == 'runecrafting':
+					self.skills[skill] == 25
 		else:
 			self.enabled_api['skills'] = False
 
@@ -897,9 +903,9 @@ class Player(ApiInterface):
 				xp = v.get('slayer_bosses', {}).get(slayer, {}).get('xp', 0)
 				self.slayer_xp[slayer] = xp
 				self.slayers[slayer], self.slayers_needed[slayer] = level_from_xp_table(xp, slayer_level_requirements[slayer])
-			self.total_slayer_xp = sum(self.slayer_xp.values())
 		else:
 			self.enabled_api['skills'] = False
+		self.total_slayer_xp = sum(self.slayer_xp.values()) if self.slayer_xp != {} else 0
 		return self
 		
 		
