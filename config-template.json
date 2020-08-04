@@ -3,6 +3,7 @@
     "api_keys" : [],
     "default_prefix" : "!",
     "database" : {
+        "local": false,
         "username" : "",
         "password" : "",
         "address" : "localhost",

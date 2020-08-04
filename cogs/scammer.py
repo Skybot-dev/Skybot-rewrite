@@ -178,7 +178,7 @@ class scammer(commands.Cog, name="Scammer"):
                 channel = guild["list_channel"]
                 await self.bot.get_guild(guild["_id"]).get_channel(channel).send(embed=scammer_embed)
                 await asyncio.sleep(0.5)
-    
+
     @scammer.command()
     @commands.check(is_staff)
     async def confirmReport(self, ctx, reportid:str, user:str=None, *, reason:str=None):
