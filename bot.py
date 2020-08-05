@@ -107,7 +107,6 @@ class Skybot(commands.AutoShardedBot):
         if isinstance(exception, commands.TooManyArguments):
             return await ctx.send("You Provided too many arguments.")
         
-
         if isinstance(exception, commands.CommandInvokeError):
             if isinstance(exception.original, discord.Forbidden):
                 try:
