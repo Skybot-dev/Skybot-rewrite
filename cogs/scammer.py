@@ -167,7 +167,7 @@ class scammer(commands.Cog, name="Scammer"):
             return await ctx.send("Already on the scammer list")
         player = await skypy.Player(self.bot.api_keys, uuid=uuid)
         discordname = player.discord
-        await self.bot.scammer_db["scammer_list"].insert_one({"_id": uuid, "reason": reason, "mod": str(ctx.author)})
+        await self.bot.scammer_db["scammer_list"].insert_one({"_id":uuid, "reason":reason, "mod":str(ctx.author), "report_id":None, "checks": 0, "anonymous": False})
         scammer_embed = discord.Embed(title=username, description=reason, color=discord.Embed.Empty).add_field(name="discord:", value=discordname, inline=False).set_footer(text=f"added by {str(ctx.author)}")
         return await ctx.send(f"added {username} to the scammer list for reason: {reason}")
         guilds = self.bot.scammer_db["channels"].find({})
