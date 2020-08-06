@@ -19,9 +19,9 @@ class Skybot(commands.AutoShardedBot):
 
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
-
-        self.trello_client, self.trello_board = trelloinit()
         self.config = get_config()
+        if self.config["trello"]["enabled"]:
+            self.trello_client, self.trello_board = trelloinit(self.config)
         self.admin_db = self.db_client["management"]
         self.users_db = self.db_client["users"]
         if self.config["slothpixel_key"]:

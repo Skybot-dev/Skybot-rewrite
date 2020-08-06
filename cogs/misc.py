@@ -16,8 +16,11 @@ class Misc(commands.Cog, name="Misc"):
     """Miscellaneous commands"""
     def __init__(self, bot):
         self.bot = bot 
-        self.my_board = self.bot.trello_board
-        self.my_lists = self.my_board.list_lists()
+        self.trelloEnabled = False
+        if hasattr(self.bot, "trello_board"):
+            self.my_board = self.bot.trello_board
+            self.my_lists = self.my_board.list_lists()
+            self.trelloEnabled = True
         self.stats.start()
     
     @commands.command(name="support", description="Support Server link", aliases=["sup"], usage="")
@@ -46,8 +49,11 @@ class Misc(commands.Cog, name="Misc"):
         await msg.add_reaction(u"\u274E")
         await ctx.send(f"Suggestion logged. Join the support server with `{ctx.prefix}support` to see it.")
         await ctx.message.delete()
-        card = self.my_lists[0].add_card(answer)
-        suggestion_doc = await self.bot.admin_db["suggestions"].insert_one({"status": "submitted", "user": ctx.author.id, "content": answer, "message": msg.id, "datetime": time.time(), "card": card.id})
+        if self.trelloEnabled:
+            card_id = self.my_lists[0].add_card(answer).id
+        else:
+            card_id = None
+        suggestion_doc = await self.bot.admin_db["suggestions"].insert_one({"status": "submitted", "user": ctx.author.id, "content": answer, "message": msg.id, "datetime": time.time(), "card": card_id})
         await msg.edit(embed=msg.embeds[0].set_footer(text=f"ID: {str(suggestion_doc.inserted_id)}"))
     
     async def view_suggestion(self, ctx, id:str):
@@ -68,7 +74,8 @@ class Misc(commands.Cog, name="Misc"):
     @suggestion.command(name="view", description="view a suggestion by its ID", usage="[ID]", hidden=True)
     async def view(self, ctx, id:str):
         embed = await self.view_suggestion(ctx, id)
-        await ctx.send(embed=embed)
+        if isinstance(embed, discord.Embed):
+            await ctx.send(embed=embed)
     
     @suggestion.command(name="list", description="view a list of all suggestions", aliases=["all"])
     @commands.check(is_staff)
@@ -87,10 +94,15 @@ class Misc(commands.Cog, name="Misc"):
     @suggestion.command(name="move", description="move a suggestion to another trello list", usage="[id] [list]", hidden=True)
     @commands.check(is_staff)
     async def move(self, ctx, id:str, *, section:str):
+        if not self.trelloEnabled:
+            return await ctx.send("Add a trello board to use this feature")
         suggestion_doc = await self.bot.admin_db["suggestions"].find_one({"_id": ObjectId(id)})
         if not suggestion_doc:
             return await ctx.send("Could not find a suggestion with that ID")    
-        card =  self.bot.trello_client.get_card(suggestion_doc["card"])
+        try:
+            card =  self.bot.trello_client.get_card(suggestion_doc["card"])
+        except:
+            return await ctx.send("Could not find a card for that suggestion")
         List = [z for z in self.my_board.all_lists() if z.name.lower() == section.lower()]
         if not List:
             return await ctx.send("Could not find that category")
@@ -109,9 +121,13 @@ class Misc(commands.Cog, name="Misc"):
     async def delete(self, ctx, id:str):
         suggestion_doc = await self.bot.admin_db["suggestions"].find_one_and_delete({"_id": ObjectId(id)})
         if not suggestion_doc:
-            return await ctx.send("Could not find a suggestion with that ID")    
-        card = self.bot.trello_client.get_card(suggestion_doc["card"])
-        card.delete()
+            return await ctx.send("Could not find a suggestion with that ID")
+        if self.trelloEnabled:
+            try:
+                card = self.bot.trello_client.get_card(suggestion_doc["card"])
+                card.delete()
+            except:
+                pass
         await ctx.send(f"successfully deleted suggestion `{id}`")
     
     

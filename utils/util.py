@@ -8,8 +8,8 @@ from discord.ext import commands
 def get_config():
     with open("config.json", "r") as fp:
         return json.load(fp)
-def trelloinit():
-    trelloconfig = get_config()["trello"]
+def trelloinit(config):
+    trelloconfig = config["trello"]
     client = TrelloClient(api_key=trelloconfig["api_key"], api_secret=trelloconfig["api_secret"])
     return (client, client.get_board(trelloconfig["board_id"]))
 
