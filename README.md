@@ -3,11 +3,11 @@ Rewrite of the Hypixel Skybot.
 ---
 ## Features
 - **!skills**
-![skill image](https://cdn.discordapp.com/attachments/667402160505487360/741028663192977488/unknown.png)
+![skill image](https://cdn.discordapp.com/attachments/667402160505487360/741030715923103787/unknown.png)
 - **!stats**
-- ![stats image](https://cdn.discordapp.com/attachments/667402160505487360/741029424488775700/unknown.png)
+- ![stats image](https://cdn.discordapp.com/attachments/667402160505487360/741030821854445658/unknown.png)
 - **!slayer**
-- ![slayer image](https://cdn.discordapp.com/attachments/667402160505487360/741029722225377280/unknown.png)
+- ![slayer image](https://cdn.discordapp.com/attachments/667402160505487360/741030911134400632/unknown.png)
 ### And many more commands inlcuding user management commands for server owners, scammer report/check commands and more!
 ---
 ## Hosting
