@@ -84,6 +84,8 @@ class scammer(commands.Cog, name="Scammer"):
                     await ctx.author.send("Please now send any photgraphic evidence that you have. This could be in-game screenshots, screenshots of chat-logs or links to video proof. You can submit up to 5 pieces of proof and type `done` if you need fewer.")
                     embeds.append(report_embed)
         async def send_embeds(embeds):
+            if len(embeds) == 1:
+                return await ctx.author.send("You must include evidence for a report. Report cancelled")
             await ctx.author.send("Do you wish for the report to be anonymous. Anonymous reports will still have the same data saved, but your name will not be publically credited for reporting the scammer. Full credit is given to non-anonymous reports. `Y/N` (replying with anything but 'no' or 'n' will result in an anonymous report")
             try:
                 anon = await self.bot.wait_for('message', timeout=90, check=check)
