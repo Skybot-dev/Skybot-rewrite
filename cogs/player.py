@@ -222,7 +222,7 @@ class Player(commands.Cog):
             await ctx.send(f"An error occurred, perhaps this user has not played skyblock.")
         
     
-    @commands.command(name="slayer", description="Shows you Slayer stats.", usage="[username] ([profile])", aliases = ["slay"])
+    @commands.command(name="slayer", description="Shows you Slayer stats.", usage="[username] ([profile])", aliases = ["slay", "slayers"])
     async def slayer(self, ctx, uname=None, profile=None):
         player = await self.make_player(ctx, uname, profile)
         if not player: return
