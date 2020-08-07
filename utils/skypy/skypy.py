@@ -611,7 +611,7 @@ class Player(ApiInterface):
 					self.discord = player["player"]["socialMedia"]["links"]["DISCORD"]
 				except:
 					self.discord = None
-				if "montlyPackageRank" in player["player"] and player["player"]["montylyPackageRank"] != "NONE":
+				if "monthlyPackageRank" in player["player"] and player["player"]["monthlyPackageRank"] != "NONE":
 					self.rank = "MVP_PLUS_PLUS"
 				elif "rank" in player["player"] and player["player"]["rank"] != "NORMAL":
 					self.rank = player["player"]["rank"]
