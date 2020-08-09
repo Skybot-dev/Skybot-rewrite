@@ -22,6 +22,25 @@ class scammer(commands.Cog, name="Scammer"):
     async def scammer(self, ctx):
         await ctx.invoke(self.bot.get_command("help show_command"), arg="scammer")
 
+    @scammer.command()
+    @commands.check(is_staff)
+    async def blacklist(self, ctx, id:int, *, reason:str=None):
+        if not await self.bot.scammer_db["users"].find_one({"_id": id}):
+            await self.bot.scammer_db["users"].insert_one({"_id": id, "blacklist": True, "reason": reason})
+        else:
+            await self.bot.scammer_db["users"].update_one({"_id": id}, {"$set": {"blacklist": True, "reason": reason}})
+        await ctx.send(f"successfully blacklisted user `{id}` from submitting scammer reports for reason: `{reason}`")
+        await self.bot.get_guild(self.bot.config["support_guild"]["ID"]).get_channel(self.bot.config["support_guild"]["log_channel"]).send(embed=discord.Embed(title="report blacklist", description=f"<@{id}> ({id}) blacklisted by {ctx.author.mention} for reason: {reason}", color=discord.Color.red()))
+    @scammer.command()
+    @commands.check(is_staff)
+    async def whitelist(self, ctx, id:int, *, reason:str=None):
+        if not await self.bot.scammer_db["users"].find_one({"_id": id}):
+            await self.bot.scammer_db["users"].insert_one({"_id": id, "blacklist": False, "reason": reason})
+        else:
+            await self.bot.scammer_db["users"].update_one({"_id": id}, {"$set": {"blacklist": False, "reason": reason}})
+        await ctx.send(f"successfully whitelisted user `{id}` for submitting scammer reports")
+        await self.bot.get_guild(self.bot.config["support_guild"]["ID"]).get_channel(self.bot.config["support_guild"]["log_channel"]).send(embed=discord.Embed(title="report whitelist", description=f"<@{id}> ({id}) whitelisted by {ctx.author.mention} for reason: {reason}", color=discord.Color.green()))
+
     @scammer.command(name="report", description="Report a Minecraft user for scamming. Must have photographic evidence ready")
     async def report(self, ctx):
         embeds = []
@@ -29,7 +48,7 @@ class scammer(commands.Cog, name="Scammer"):
         blacklisted = await self.bot.scammer_db["users"].find_one({"_id": ctx.author.id})
         if blacklisted:
             if blacklisted["blacklist"]:
-                await ctx.author.send("You have been blacklisted from submitting reports")
+                await ctx.author.send(f"You have been blacklisted from submitting reports for reason: `{blacklisted['reason']}`")
                 return
         report_guild = self.bot.get_guild(config["support_guild"]["ID"])
         report_channel = report_guild.get_channel(config["support_guild"]["report_channel"])
@@ -95,7 +114,7 @@ class scammer(commands.Cog, name="Scammer"):
                 anonymous = False
             else:
                 anonymous = True
-            await ctx.author.send("Please confirm that the above information is correct and that you wish to submit the report by replying with `send`")
+            await ctx.author.send("Please confirm that the above information is correct and that you wish to submit the report by replying with `send`\nPlease be aware that submitting a troll or fake report will cause you to be blacklisted from submitting reports in the future.")
             try:
                 confirmation = await self.bot.wait_for('message', timeout=30.0, check=check)
                 if confirmation.content.lower() == "send":
