@@ -1,7 +1,7 @@
 import logging
 # import statuspageio
 from loguru import logger
-from utils.util import get_config
+# from utils.util import get_config
 
 class InterceptHandler(logging.Handler):
     def emit(self, record):

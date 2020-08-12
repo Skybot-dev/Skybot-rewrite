@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 from utils.util import get_uuid_profileid
 from utils.skypy import skypy, exceptions

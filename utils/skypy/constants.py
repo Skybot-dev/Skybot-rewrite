@@ -1,5 +1,4 @@
 import re
-import math
 
 sword_enchants = [
     'sharpness',
@@ -115,7 +114,7 @@ skills = ['farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'a
 cosmetic_skills = ['carpentry', 'runecrafting']
 skill_icons = {
     'farming' : "🌾", 'mining' : "⛏️", 'combat' : "⚔️", 'foraging' : "🌳", 'fishing' : "🎣", 'enchanting' : "📖", 'alchemy' : "⚗️",
-    'taming' : "🐇", 'carpentry' : "🪑", 'runecrafting' : "☯️", 'carpentry' : "🪑"
+    'taming' : "🐇", 'carpentry' : "🪑", 'runecrafting' : "☯️"
 }
 slayers = ['zombie', 'spider', 'wolf']
 

@@ -1,7 +1,6 @@
+import discord
 import asyncio
 from EZPaginator import Paginator
-import discord
-from discord.ext import commands
 
 class Expander(Paginator):
     def __init__(self, ctx, message, contents=None, embeds=None, timeout=60, only=None):
@@ -51,5 +50,5 @@ class Expander(Paginator):
                     await self.message.clear_reactions()
                     await self.go_first()
                     break
-                except:
+                except (discord.Forbidden, discord.HTTPException):
                     break

@@ -1,16 +1,11 @@
 import discord
-from utils import logging
 from utils.util import is_staff
 from utils.skypy.skypy import fetch_uuid_uname
 from utils.skypy import skypy
-from inspect import Parameter
-from discord.ext import commands, tasks
+from discord.ext import commands
 from utils.embed import Embed
 from bson.objectid import ObjectId
-from EZPaginator import Paginator
-import time
 from datetime import datetime
-import random
 import aiohttp
 import asyncio
 class scammer(commands.Cog, name="Scammer"):
@@ -190,7 +185,7 @@ class scammer(commands.Cog, name="Scammer"):
         discordname = player.discord
         await self.bot.scammer_db["scammer_list"].insert_one({"_id":uuid, "reason":reason, "mod":str(ctx.author), "report_id":None, "checks": 0, "anonymous": False})
         scammer_embed = discord.Embed(title=username, description=reason, color=discord.Embed.Empty).add_field(name="discord:", value=discordname, inline=False).set_footer(text=f"added by {str(ctx.author)}")
-        return await ctx.send(f"added {username} to the scammer list for reason: {reason}")
+        await ctx.send(f"added {username} to the scammer list for reason: {reason}")
         guilds = self.bot.scammer_db["channels"].find({})
         async for guild in guilds:
             if "list_channel" not in guild:
