@@ -1,5 +1,7 @@
 from utils.skypy.exceptions import *
+#lgtm [py/polluting-import]
 from utils.skypy.constants import *
+#lgtm [py/polluting-import]
 
 _advancedmode = False
 def enable_advanced_mode():
@@ -70,7 +72,7 @@ class TimedEvent:
 				self.event_in = timedelta(seconds=self.estimate - time.time())
 				self.event_in = self.event_in if self.event_in > timedelta(seconds=0) else timedelta(seconds=0)
 				return self
-		except:
+		except Exception:
 			pass
 
             
@@ -327,6 +329,7 @@ class Pet:
 		cls.rarity = data.get('tier', 'COMMON').lower()
 		cls.internal_name = data.get('type', 'BEE')
 		cls.level, needed = level_from_xp_table(cls.xp, pet_xp[cls.rarity])
+		#lgtm [py/unused-local-variable]
 		cls.name = pet_stats[cls.internal_name]['name']
 		cls.title = f'[Lvl {cls.level}] {cls.name}'
 		cls.xp_remaining = pet_xp[cls.rarity][-1] - cls.xp
@@ -454,7 +457,7 @@ class Guild(ApiInterface):
 		self.players = []
 		for player in self.data['members']:
 			try:
-				player = await Player(self._api_keys, uuid=player['uuid'])
+				player = await Player(keys=self._api_keys, uuid=player['uuid'])
 				self.players.append(player)
 			except NeverPlayedSkyblockError:
 				pass
@@ -609,7 +612,7 @@ class Player(ApiInterface):
 
 				try:
 					self.discord = player["player"]["socialMedia"]["links"]["DISCORD"]
-				except:
+				except KeyError:
 					self.discord = None
 				if "monthlyPackageRank" in player["player"] and player["player"]["monthlyPackageRank"] != "NONE":
 					self.rank = "MVP_PLUS_PLUS"
@@ -823,6 +826,7 @@ class Player(ApiInterface):
 		)
 
 		self.minion_slots, needed = level_from_xp_table(self.unique_minions, minion_slot_requirements)
+		#lgtm [py/unused-local-variable]
 
 		return self
 
@@ -1023,7 +1027,7 @@ class Player(ApiInterface):
 
 	def talisman_stats(self, include_reforges=True):
 		stats = {}
-		names = [tali.internal_name for tali in self.talismans if tali.active]
+		#names = [tali.internal_name for tali in self.talismans if tali.active]
 		for i in self.talismans:
 			if i.active:
 				for stat, amount in i.stats(include_reforges).items():

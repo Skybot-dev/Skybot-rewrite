@@ -1,7 +1,7 @@
 import discord
 import asyncio
 from discord.ext import commands
-from utils.skypy import skypy, exceptions
+from utils.skypy import skypy
 from utils.embed import Embed
 from cogs.server_config import on_user_verified, on_user_unverified
 from EZPaginator import Paginator
@@ -77,7 +77,7 @@ class Connections(commands.Cog):
                 dm_msg = await ctx.author.send("Wow look at your skill writing properties about yourself. Next up you should verify that you actually own this Minecraft account. Please link Hypixel with your discord account and confirm through reacting to this message.")
                 dm_msg = await ctx.author.send("https://giant.gfycat.com/DentalTemptingLeonberger.mp4")
                 await dm_msg.add_reaction("✅")
-                user_msg = await self.bot.wait_for("reaction_add", check=lambda reaction, user: user == ctx.author and str(reaction.emoji) == "✅", timeout=60)
+                await self.bot.wait_for("reaction_add", check=lambda reaction, user: user == ctx.author and str(reaction.emoji) == "✅", timeout=60)
                 dm_ctx = await self.bot.get_context(dm_msg)
                 ctx.channel = dm_ctx.channel
                 await ctx.invoke(self.verify, username=player.uname)
@@ -145,12 +145,12 @@ class Connections(commands.Cog):
                 return await on_user_verified(ctx, self.bot, username)
             return await ctx.send(f"Your link between Hypixel and Discord is incorrect.\nHypixel: {player.discord}\nDiscord: {name}")
         
-        msg = await ctx.invoke(self.link, username=username)
+        await ctx.invoke(self.link, username=username)
         await ctx.reinvoke()
 
     @account.command(name="profile", description="Set your default profile.", usage="[profile]")
     async def profile(self, ctx, profile):
-        user_db = user_db = await self.connections.find_one({"id" : ctx.author.id})
+        user_db = await self.connections.find_one({"id" : ctx.author.id})
         if not user_db:
             return await ctx.send(f"Please link your username to your discord account first.\n`{ctx.prefix}account link [username]`")
 
@@ -187,7 +187,7 @@ class Connections(commands.Cog):
         try:
             converter = commands.UserConverter()
             user = await converter.convert(ctx, user)
-        except:
+        except commands.BadArgument:
             pass
         if user is None:
             user = ctx.author

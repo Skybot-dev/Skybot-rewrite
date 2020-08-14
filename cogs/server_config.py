@@ -1,10 +1,8 @@
 import discord
-from utils import logging
-from inspect import Parameter
 from discord.ext import commands, tasks
 from utils.skypy import skypy
 from utils.embed import Embed
-from utils.util import is_staff, get_user_guilds, is_verified
+from utils.util import get_user_guilds, is_verified
 import copy
 
 skypy.enable_advanced_mode()
@@ -68,7 +66,7 @@ async def update_guild(bot, guild, user, name, uuid):
         try:
             await remove_rankroles(bot, roles, member)
             await add_rankroles(bot, roles, member)
-        except:
+        except (discord.Forbidden, discord.HTTPException):
             pass
     
 
@@ -84,7 +82,7 @@ async def on_user_verified(ctx, bot: commands.Bot, name):
                 try:
                     on_user_unverified(ctx, bot, user)
                     await user.send(f"You have been unlinked from `{name}`, because someone verified that they own this Minecraft account.")
-                except:
+                except (discord.Forbidden, discord.HTTPException):
                     pass
             await bot.users_db["connections"].delete_one(uuid_db)
     await update_all_guilds(bot, ctx.author, name, uuid)
@@ -125,7 +123,7 @@ async def update_nicks(ctx, bot):
             if hasattr(member, "nick") and member.nick == nick:
                 continue
             await member.edit(nick=nick)
-        except:
+        except (discord.Forbidden, discord.HTTPException):
             pass
 
 
@@ -137,7 +135,7 @@ async def on_verifynick_change(ctx, bot, state):
             try:
                 if await is_verified(bot, member):
                     await member.edit(nick=None)
-            except:
+            except (discord.Forbidden, discord.HTTPException):
                 pass
         
 async def add_roles(ctx, bot):
@@ -149,7 +147,7 @@ async def add_roles(ctx, bot):
             if not await is_verified(bot, member): continue
             if role in member.roles: continue
             await member.add_roles(role)
-        except:
+        except (discord.Forbidden, discord.HTTPException):
             pass
         
 async def remove_roles(ctx, bot):
@@ -160,7 +158,7 @@ async def remove_roles(ctx, bot):
         try:
             if role not in member.roles: continue
             await member.remove_roles(role)
-        except:
+        except (discord.Forbidden, discord.HTTPException):
             pass
 
 async def on_verifyrole_change(ctx, bot, state):
@@ -172,7 +170,7 @@ async def on_verifyrole_change(ctx, bot, state):
 async def on_role_changed(ctx, bot, before, after):
     if before == after:
         return
-    if before == None:
+    if before is None:
         before = after
     for member in ctx.guild.members:
         if not await is_verified(bot, member): continue
@@ -182,7 +180,7 @@ async def on_role_changed(ctx, bot, before, after):
                 await member.add_roles(after)
             else:
                 await member.add_roles(after)
-        except:
+        except (discord.Forbidden, discord.HTTPException):
             pass
 
 
@@ -200,7 +198,7 @@ async def add_rankroles(bot, roles, member):
             if role.name == rank:
                 await member.add_roles(role)
             
-    except:
+    except (discord.Forbidden, discord.HTTPException):
         return
         
 async def remove_rankroles(bot, roles, member):
@@ -209,7 +207,7 @@ async def remove_rankroles(bot, roles, member):
             for user_role in member.roles:
                 if role == user_role:
                     await member.remove_roles(role)
-    except:
+    except (discord.Forbidden, discord.HTTPException): 
         return
 
 async def on_rankroles_changed(ctx, bot, state, roles):
@@ -247,14 +245,13 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             await update_guild(self.bot, member.guild, member, name, uuid)
     
     async def on_eventchannel_changed(self, ctx, bot, msg_before, channel_before):
-        doc = await bot.guilds_db["eventchannel"].find_one({"_id" : ctx.guild.id})
         if msg_before is None: return
         channel = bot.get_channel(channel_before)
         msg = await channel.fetch_message(msg_before)
         try:
             await msg.delete()
             self.eventchannel_msgs.remove(msg)
-        except:
+        except (discord.Forbidden, discord.HTTPException, discord.NotFound):
             pass
     
     async def get_info(self, ctx : commands.Context, guild, setting : str):
@@ -267,7 +264,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
                     role = ctx.guild.get_role(v)
                     if role:
                         v = role.mention
-                except:
+                except AttributeError:
                     pass
 
                 info += f"{k.capitalize()}: {v}\n"
@@ -373,13 +370,13 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
                     role = ctx.guild.get_role(v)
                     if role:
                         v = role.mention
-                except:
+                except AttributeError:
                     pass
                 try:
                     channel = ctx.guild.get_channel(v)
                     if channel:
                         v = channel.mention
-                except:
+                except AttributeError:
                     pass
 
                 description += f"{k.capitalize()}: {v}\n"

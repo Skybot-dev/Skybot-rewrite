@@ -1,9 +1,6 @@
-import discord
-from EZPaginator import Paginator
 from utils.embed import Embed
 from utils.expander import Expander
 from discord.ext import commands
-from utils import logging
 from utils.util import has_is_staff, is_staff
 
 class Help(commands.Cog):
@@ -114,7 +111,7 @@ class Help(commands.Cog):
 
         if command.description == "": description = "No Description."
         else: description = command.description
-        if command.usage == None: usage = "No Usage."
+        if command.usage is None: usage = "No Usage."
         elif command.parents: usage = f"{ctx.prefix}{' '.join([command.name.capitalize() for command in command.parents])} {command.name.capitalize()} {command.usage}"
         else: usage = f"{ctx.prefix}{command.name.capitalize()} {command.usage}"
         if command.aliases == []: aliases = "No Aliases."

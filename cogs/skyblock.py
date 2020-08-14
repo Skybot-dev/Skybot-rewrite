@@ -8,6 +8,7 @@ from utils.skypy.skypy import TimedEvent
 from datetime import timedelta
 import time
 from EZPaginator import Paginator
+from pymongo.collection import Collection
 
 
 class Skyblock(commands.Cog):
@@ -73,7 +74,7 @@ class Skyblock(commands.Cog):
         if not event.event_name and not event.event_in:
             try:
                 await event.set_data()
-            except:
+            except Exception:
                 await asyncio.sleep(2)
                 await event.set_data()
 
@@ -98,7 +99,7 @@ class Skyblock(commands.Cog):
 
     @commands.command(name="event", description="Shows you when a Skyblock event is. Give no argument to get all times.", usage="([event])", aliases=["whenisnext", "win"])
     async def event(self, ctx, arg : EventConverter=None):
-        if arg == None:
+        if arg is None:
             events = []
             for event_url in TimedEvent.urls:
                 events.append(self.get_event(TimedEvent(event_url)))
@@ -224,12 +225,11 @@ class Skyblock(commands.Cog):
 
             estimate = event.estimate - 300 #minutes before
             if estimate < time.time():
-                try:
-                    user = self.bot.get_user(doc["id"])
+                user = self.bot.get_user(doc["id"])
+                if user:
                     await user.send(f"This is a reminder for {event.event_name}. The event will be in 5 minutes, so get yourself ready. The reminder has been removed.")
-                    await self.reminders.delete_one(doc)
-                except:
-                    pass
+                await self.reminders.delete_one(doc)
+
 
 
     @tasks.loop(minutes=1)

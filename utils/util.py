@@ -1,5 +1,4 @@
 import json
-import aiohttp
 import discord
 from trello import TrelloClient
 from discord.ext import commands

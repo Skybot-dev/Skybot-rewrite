@@ -9,7 +9,9 @@ class DataError(SkyblockError):
 class ExternalAPIError(SkyblockError):
 	"""There was an issue connecting to the Hypixel API"""
 	def __init__(self, reason=''):
+		super().__init__()
 		self.reason = reason
+
 	
 class HypixelError(ExternalAPIError):
 	"""The Hypixel API had some error"""
@@ -28,12 +30,14 @@ class BadNameError(SkyblockError):
 class NeverPlayedSkyblockError(BadNameError):
 	"""This user has never played skyblock before!"""
 	def __init__(self, uname_or_uuid, reason=''):
+		super().__init__()
 		self.uname_or_uuid = uname_or_uuid
 		self.reason = reason
 		
 class BadGuildError(BadNameError):
 	"""This is an invalid guild"""
 	def __init__(self, guild, reason=''):
+		super().__init__()
 		self.guild = guild
 		self.reason = reason
 		

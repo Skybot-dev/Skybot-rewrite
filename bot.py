@@ -8,7 +8,6 @@ from database.init import init_client
 from utils.util import get_config, trelloinit
 from utils.skypy import exceptions
 from utils import logging
-import random
 from itertools import cycle
 
 
@@ -111,7 +110,7 @@ class Skybot(commands.AutoShardedBot):
             if isinstance(exception.original, discord.Forbidden):
                 try:
                     return await ctx.author.send(f"I couldn't respond in {ctx.channel.mention}, because I have no permissions to send messages there.")
-                except:
+                except discord.Forbidden:
                     pass
             if isinstance(exception.original, exceptions.NeverPlayedSkyblockError):
                 return await ctx.send("This player never played Hypixel Skyblock.", delete_after=7)

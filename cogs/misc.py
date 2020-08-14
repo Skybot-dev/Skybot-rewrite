@@ -1,17 +1,12 @@
 import discord
-from utils import logging
 from utils.util import is_staff
-from inspect import Parameter
 from discord.ext import commands, tasks
 from utils.embed import Embed
-from utils.util import get_config
 from bson.objectid import ObjectId
 from EZPaginator import Paginator
 import time
 from datetime import datetime
-from trello import TrelloClient
-#from trello.trelloclient import TrelloClient
-#import trello
+
 class Misc(commands.Cog, name="Misc"):
     """Miscellaneous commands"""
     def __init__(self, bot):
