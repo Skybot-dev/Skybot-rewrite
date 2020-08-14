@@ -161,7 +161,7 @@ class Skyblock(commands.Cog):
                 url = f"https://sky.lea.moe/head/{item_data[names[result]]['texture']}"
             else:
                 url = ''
-                flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
+            flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
             embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%").set_footer(text=f"page {len(results) + i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
         msg = await ctx.send(embed=embeds[0])
         pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)

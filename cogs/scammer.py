@@ -13,6 +13,7 @@ from datetime import datetime
 import random
 import aiohttp
 import asyncio
+
 class scammer(commands.Cog, name="Scammer"):
     """Miscellaneous commands"""
     def __init__(self, bot):
