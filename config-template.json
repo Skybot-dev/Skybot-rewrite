@@ -1,6 +1,7 @@
 {
     "token" : "",
     "api_keys" : [],
+    "stats_api": "default",
     "default_prefix" : "!",
     "database" : {
         "local": false,

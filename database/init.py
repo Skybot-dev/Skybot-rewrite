@@ -1,6 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from utils.util import get_config
 from loguru import logger
+
 @logger.catch()
 def init_client(loop):
     logger.info("Connecting to Database...")

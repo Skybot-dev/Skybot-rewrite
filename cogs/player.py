@@ -212,7 +212,7 @@ class Player(commands.Cog):
     async def stats(self, ctx, uname=None, profile=None):
         player : skypy.Player = await self.make_player(ctx, uname, profile)
         if not player: return
-        success = await player.skylea_stats()
+        success = await player.skylea_stats(self.bot.stats_api)
         if success:
             async with ctx.typing():
                 embed = await self.get_stats_embed(ctx, player)

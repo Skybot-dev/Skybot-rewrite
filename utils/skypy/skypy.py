@@ -1094,9 +1094,9 @@ class Player(ApiInterface):
 
 		return stats
 
-	async def skylea_stats(self):
+	async def skylea_stats(self, apiLink):
 		try:
-			async with (await session()).get("https://sky.lea.moe/api/v2/profile/" + self.uuid) as data:
+			async with (await session()).get(f"{apiLink}/{self.uuid}?key={self.__next_key__()}") as data:
 				json = await data.json(content_type=None)
 				if data.status == 200:
 					self.stats = json["profiles"][self.profile]["data"]["stats"]
