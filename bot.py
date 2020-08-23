@@ -28,7 +28,7 @@ class Skybot(commands.AutoShardedBot):
         else:
             self.slothpixel_key_string = ''
         if self.config["stats_api"] == "default":
-            self.stats_api = "juli324.ddns.net/stats"
+            self.stats_api = "http://hypixel-skybot.ddns.net/stats"
         else:
             self.stats_api = self.config["stats_api"]
         self.guilds_db = self.db_client["guilds"]
