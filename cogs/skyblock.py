@@ -122,7 +122,7 @@ class Skyblock(commands.Cog):
         names = {item_data[z]["name"].lower(): z for z in item_data}
         results = {}
         bazaar_results = {}
-        matches = {z: y for (z, y) in names.items() if name in z}
+        matches = {z: y for (z, y) in names.items() if name.lower() in z.lower()}
         async with aiohttp.ClientSession() as session:
             for i, item in enumerate(matches):
                 if i < 5:
