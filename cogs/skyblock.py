@@ -168,7 +168,7 @@ class Skyblock(commands.Cog):
         pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)
         await pages.start()
 
-    @commands.group(name="reminder", description="Set a reminder for an event. The bot will message you 5 minutes before it.", usage="[set/remove/list]", invoke_without_command=True)
+    @commands.group(name="reminder", description="Set a reminder for an event. The bot will message you 5 minutes before it.", aliases=["remind", "rem", "r"], usage="[set/remove/list]", invoke_without_command=True)
     async def reminder(self, ctx):
         await ctx.invoke(self.bot.get_command("help show_command"), arg="reminder")
 
