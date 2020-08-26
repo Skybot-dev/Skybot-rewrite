@@ -96,7 +96,6 @@ class Skyblock(commands.Cog):
             embed.add_field(name=event.event_name, value=f"In: {event_in}\nOn: {event_on}", inline=False)
         return embed
 
-
     @commands.command(name="event", description="Shows you when a Skyblock event is. Give no argument to get all times.", usage="([event])", aliases=["whenisnext", "win"])
     async def event(self, ctx, arg : EventConverter=None):
         if arg is None:
@@ -115,7 +114,6 @@ class Skyblock(commands.Cog):
 
     @commands.command(name="price", description="get the average price of a skyblock item", aliases=['p'], usage="[item]")
     async def price(self, ctx, *, name:str):
-        s = time.time()
         await ctx.trigger_typing()
         async with aiohttp.ClientSession() as session:
             async with session.get("https://api.slothpixel.me/api/skyblock/items") as resp:
@@ -142,16 +140,13 @@ class Skyblock(commands.Cog):
             for item, mdata in matches.items():
                 if counter < 5:
                     if mdata[1]:
-                        print(item, mdata)
                         btasks.append(asyncio.create_task(bazaarData(session, item)))
                     else:
-                        print(item, mdata)
                         atasks.append(asyncio.create_task(auctionData(session, item)))
             auctions = await asyncio.gather(*atasks)
             bazaar = await asyncio.gather(*btasks)
         bazaar_results = {k[0]: k[1] for k in bazaar if k}
         results = {k[0]: k[1] for k in auctions if k}
-        print(bazaar_results, results)
         if len(matches) < 5:
             string = f"showing all {len(results) + len(bazaar_results)} results"
         else:
@@ -182,8 +177,6 @@ class Skyblock(commands.Cog):
             flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
             embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%").set_footer(text=f"page {len(results) + i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
         msg = await ctx.send(embed=embeds[0])
-        e = time.time()
-        print(e-s)
         pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)
         await pages.start()
 
