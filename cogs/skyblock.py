@@ -115,38 +115,43 @@ class Skyblock(commands.Cog):
 
     @commands.command(name="price", description="get the average price of a skyblock item", aliases=['p'], usage="[item]")
     async def price(self, ctx, *, name:str):
+        s = time.time()
         await ctx.trigger_typing()
         async with aiohttp.ClientSession() as session:
             async with session.get("https://api.slothpixel.me/api/skyblock/items") as resp:
                 item_data = await resp.json()
-        names = {item_data[z]["name"].lower(): z for z in item_data}
+        names = {item_data[z]["name"].lower(): [z, b.get('bazaar')] for z, b in item_data.items()}
         btasks = []
         atasks = []
         matches = {z: y for (z, y) in names.items() if name.lower() in z.lower()}
-
         async def auctionData(sesh, i):
-            id = matches.get(i)
+            id = matches.get(i)[0]
             r = await sesh.get(f'https://api.slothpixel.me/api/skyblock/auctions/{id}')
             j = await r.json()
             if 'error' not in j and j.get('average_price'):
                 return i, j
 
         async def bazaarData(sesh, i):
-            id = matches.get(i)
+            id = matches.get(i)[0]
             r = await sesh.get(f'https://api.slothpixel.me/api/skyblock/bazaar/{id}')
             j = await r.json()
             if not j.get('error') and j:
                 return i, j
-
+        counter = 0
         async with aiohttp.ClientSession() as session:
-            for i, item in enumerate(matches):
-                if i < 5:
-                    btasks.append(asyncio.create_task(bazaarData(session, item)))
-                    atasks.append(asyncio.create_task(auctionData(session, item)))
+            for item, mdata in matches.items():
+                if counter < 5:
+                    if mdata[1]:
+                        print(item, mdata)
+                        btasks.append(asyncio.create_task(bazaarData(session, item)))
+                    else:
+                        print(item, mdata)
+                        atasks.append(asyncio.create_task(auctionData(session, item)))
             auctions = await asyncio.gather(*atasks)
             bazaar = await asyncio.gather(*btasks)
         bazaar_results = {k[0]: k[1] for k in bazaar if k}
         results = {k[0]: k[1] for k in auctions if k}
+        print(bazaar_results, results)
         if len(matches) < 5:
             string = f"showing all {len(results) + len(bazaar_results)} results"
         else:
@@ -164,21 +169,23 @@ class Skyblock(commands.Cog):
                 flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
                 await ctx.send(embed=Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%"))
         for i, result in enumerate(results):
-            if "texture" in item_data[names[result]]:
-                url = f"https://sky.lea.moe/head/{item_data[names[result]]['texture']}"
+            if "texture" in item_data[names[result][0]]:
+                url = f"https://sky.lea.moe/head/{item_data[names[result][0]]['texture']}"
             else:
                 url = ''
             embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} on auction", description=f"Average Price: {results[result]['average_price']}\nPrice range: {results[result]['min_price']} - {results[result]['max_price']}").set_footer(text=f"page {i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
         for i, result in enumerate(bazaar_results):
-            if "texture" in item_data[names[result]]:
-                url = f"https://sky.lea.moe/head/{item_data[names[result]]['texture']}"
+            if "texture" in item_data[names[result][0]]:
+                url = f"https://sky.lea.moe/head/{item_data[names[result][0]]['texture']}"
             else:
                 url = ''
             flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
             embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%").set_footer(text=f"page {len(results) + i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
         msg = await ctx.send(embed=embeds[0])
+        e = time.time()
+        print(e-s)
         pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)
-        await pages.start()   
+        await pages.start()
 
     @commands.group(name="reminder", description="Set a reminder for an event. The bot will message you 5 minutes before it.", aliases=["remind", "rem"], usage="[set/remove/list]", invoke_without_command=True)
     async def reminder(self, ctx):
