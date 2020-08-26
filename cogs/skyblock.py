@@ -135,14 +135,12 @@ class Skyblock(commands.Cog):
             j = await r.json()
             if not j.get('error') and j:
                 return i, j
-        counter = 0
         async with aiohttp.ClientSession() as session:
             for item, mdata in matches.items():
-                if counter < 5:
-                    if mdata[1]:
-                        btasks.append(asyncio.create_task(bazaarData(session, item)))
-                    else:
-                        atasks.append(asyncio.create_task(auctionData(session, item)))
+                if mdata[1]:
+                    btasks.append(asyncio.create_task(bazaarData(session, item)))
+                else:
+                    atasks.append(asyncio.create_task(auctionData(session, item)))
             auctions = await asyncio.gather(*atasks)
             bazaar = await asyncio.gather(*btasks)
         bazaar_results = {k[0]: k[1] for k in bazaar if k}
@@ -162,7 +160,7 @@ class Skyblock(commands.Cog):
             else:
                 result = list(bazaar_results.keys())[0]
                 flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
-                await ctx.send(embed=Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%"))
+                return await ctx.send(embed=Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%"))
         for i, result in enumerate(results):
             if "texture" in item_data[names[result][0]]:
                 url = f"https://sky.lea.moe/head/{item_data[names[result][0]]['texture']}"
