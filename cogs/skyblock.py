@@ -147,14 +147,14 @@ class Skyblock(commands.Cog):
             bazaar = await asyncio.gather(*btasks)
         bazaar_results = {k[0]: k[1] for k in bazaar if k}
         results = {k[0]: k[1] for k in auctions if k}
-        if len(matches) < 5:
-            string = f"showing all {len(results) + len(bazaar_results)} results"
+        if not (results or bazaar_results):
+            return await ctx.send(embed=discord.Embed(title=":x: Item not found!", description="No price could be found for that search on the auction house or bazaar", color=discord.Color.red()))
+        if len(matches) == len(results) + len(bazaar_results):
+            string = f"showing all {len(matches)} results"
         else:
             string = f"showing {len(results) + len(bazaar_results)} of {len(matches)} results."
         embed = Embed(self.bot, ctx.author, title=f"Price search for {name}", description=f"{string}\nAuction Items: {len(results)}\nBazaar Items: {len(bazaar_results)}")
         embeds = [embed]
-        if not (results or bazaar_results):
-            return await ctx.send(embed=discord.Embed(title=":x: Item not found!", description="No price could be found for that search on the auction house or bazaar", color=discord.Color.red()))
         if len(results) + len(bazaar_results) == 1:
             if results:
                 result = list(results.keys())[0]
