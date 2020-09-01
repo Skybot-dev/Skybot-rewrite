@@ -247,11 +247,11 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
     async def on_eventchannel_changed(self, ctx, bot, msg_before, channel_before):
         if msg_before is None: return
         channel = bot.get_channel(channel_before)
-        msg = await channel.fetch_message(msg_before)
         try:
+            msg = await channel.fetch_message(msg_before)
+            self.eventchannel_msgs.discard(msg)
             await msg.delete()
-            self.eventchannel_msgs.remove(msg)
-        except (discord.Forbidden, discord.HTTPException, discord.NotFound):
+        except (discord.Forbidden, discord.HTTPException, discord.NotFound) as e:
             pass
     
     async def get_info(self, ctx : commands.Context, guild, setting : str):
@@ -614,15 +614,15 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             msg = await channel.send(content="Placeholder. This message will update soon!")
         except discord.Forbidden:
             return await ctx.send("The bot needs permissions to send a message into that channel!")
+        self.eventchannel_msgs.add(msg)
         if doc:
             await self.config["eventchannel"].update_one(doc, {"$set" : {"channel" : channel.id, "message" : msg.id}})
             await self.on_eventchannel_changed(ctx, self.bot, doc["message"], doc["channel"])
         else:
             await self.config["eventchannel"].insert_one({"_id" : ctx.guild.id, "on" : True, "channel" : channel.id, "message" : msg.id})
             await self.on_eventchannel_changed(ctx, self.bot, None, None)
-            
-        self.eventchannel_msgs.add(msg)
         
+          
         await ctx.send(f"Changed channel of `eventchannel` to {channel.mention}")
         await ctx.invoke(self.eventchannel_on)
         
