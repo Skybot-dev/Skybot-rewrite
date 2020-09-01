@@ -96,7 +96,6 @@ class Skyblock(commands.Cog):
             embed.add_field(name=event.event_name, value=f"In: {event_in}\nOn: {event_on}", inline=False)
         return embed
 
-
     @commands.command(name="event", description="Shows you when a Skyblock event is. Give no argument to get all times.", usage="([event])", aliases=["whenisnext", "win"])
     async def event(self, ctx, arg : EventConverter=None):
         if arg is None:
@@ -119,30 +118,43 @@ class Skyblock(commands.Cog):
         async with aiohttp.ClientSession() as session:
             async with session.get("https://api.slothpixel.me/api/skyblock/items") as resp:
                 item_data = await resp.json()
-        names = {item_data[z]["name"].lower(): z for z in item_data}
-        results = {}
-        bazaar_results = {}
+        names = {item_data[z]["name"].lower(): [z, b.get('bazaar')] for z, b in item_data.items()}
+        btasks = []
+        atasks = []
         matches = {z: y for (z, y) in names.items() if name.lower() in z.lower()}
+        async def auctionData(sesh, i):
+            id = matches.get(i)[0]
+            r = await sesh.get(f'https://api.slothpixel.me/api/skyblock/auctions/{id}')
+            j = await r.json()
+            if 'error' not in j and j.get('average_price'):
+                return i, j
+
+        async def bazaarData(sesh, i):
+            id = matches.get(i)[0]
+            r = await sesh.get(f'https://api.slothpixel.me/api/skyblock/bazaar/{id}')
+            j = await r.json()
+            if not j.get('error') and j:
+                return i, j
+        counter = 0
         async with aiohttp.ClientSession() as session:
-            for i, item in enumerate(matches):
-                if i < 5:
-                    async with session.get(f"https://api.slothpixel.me/api/skyblock/auctions/{matches[item]}{self.bot.slothpixel_key_string}") as resp:
-                        if not (await resp.json())["average_price"]:
-                            pass
-                        else:
-                            results[item] = await resp.json()
-                    async with session.get(f"https://api.slothpixel.me/api/skyblock/bazaar/{matches[item]}") as resp:
-                        r = await resp.json()
-                        if "error" not in r:
-                            bazaar_results[item] = r
-        if len(matches) < 5:
-            string = f"showing all {len(results) + len(bazaar_results)} results"
+            for item, mdata in matches.items():
+                if counter < 5:
+                    if mdata[1]:
+                        btasks.append(asyncio.create_task(bazaarData(session, item)))
+                    else:
+                        atasks.append(asyncio.create_task(auctionData(session, item)))
+            auctions = await asyncio.gather(*atasks)
+            bazaar = await asyncio.gather(*btasks)
+        bazaar_results = {k[0]: k[1] for k in bazaar if k}
+        results = {k[0]: k[1] for k in auctions if k}
+        if not (results or bazaar_results):
+            return await ctx.send(embed=discord.Embed(title=":x: Item not found!", description="No price could be found for that search on the auction house or bazaar", color=discord.Color.red()))
+        if len(matches) == len(results) + len(bazaar_results):
+            string = f"showing all {len(matches)} results"
         else:
             string = f"showing {len(results) + len(bazaar_results)} of {len(matches)} results."
         embed = Embed(self.bot, ctx.author, title=f"Price search for {name}", description=f"{string}\nAuction Items: {len(results)}\nBazaar Items: {len(bazaar_results)}")
         embeds = [embed]
-        if not (results or bazaar_results):
-            return await ctx.send(embed=discord.Embed(title=":x: Item not found!", description="No price could be found for that search on the auction house or bazaar", color=discord.Color.red()))
         if len(results) + len(bazaar_results) == 1:
             if results:
                 result = list(results.keys())[0]
@@ -152,14 +164,14 @@ class Skyblock(commands.Cog):
                 flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
                 await ctx.send(embed=Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%"))
         for i, result in enumerate(results):
-            if "texture" in item_data[names[result]]:
-                url = f"https://sky.lea.moe/head/{item_data[names[result]]['texture']}"
+            if "texture" in item_data[names[result][0]]:
+                url = f"https://sky.lea.moe/head/{item_data[names[result][0]]['texture']}"
             else:
                 url = ''
             embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} on auction", description=f"Average Price: {results[result]['average_price']}\nPrice range: {results[result]['min_price']} - {results[result]['max_price']}").set_footer(text=f"page {i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
         for i, result in enumerate(bazaar_results):
-            if "texture" in item_data[names[result]]:
-                url = f"https://sky.lea.moe/head/{item_data[names[result]]['texture']}"
+            if "texture" in item_data[names[result][0]]:
+                url = f"https://sky.lea.moe/head/{item_data[names[result][0]]['texture']}"
             else:
                 url = ''
             flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
@@ -168,7 +180,7 @@ class Skyblock(commands.Cog):
         pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)
         await pages.start()
 
-    @commands.group(name="reminder", description="Set a reminder for an event. The bot will message you 5 minutes before it.", usage="[set/remove/list]", invoke_without_command=True)
+    @commands.group(name="reminder", description="Set a reminder for an event. The bot will message you 5 minutes before it.", aliases=["remind", "rem"], usage="[set/remove/list]", invoke_without_command=True)
     async def reminder(self, ctx):
         await ctx.invoke(self.bot.get_command("help show_command"), arg="reminder")
 

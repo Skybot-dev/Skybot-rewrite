@@ -172,8 +172,8 @@ class Item:
 		tag = nbt.get('tag', {})
 		extras = tag.get('ExtraAttributes', {})
 
-		self.description = tag.get('display', {}).get('Lore', [])
-		self.description_clean = [re.sub('§.', '', line) for line in self.description]
+		self.description = tag.get('display', {}).get('Lore', [])		
+		self.description_clean = [re.sub('§.', '', (re.sub('§ka', '', line))) for line in self.description] 
 		self.description = '\n'.join(self.description)
 		self.internal_name = extras.get('id', None)
 		self.hot_potatos = extras.get('hot_potato_count', 0)
