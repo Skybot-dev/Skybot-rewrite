@@ -88,7 +88,7 @@ class Connections(commands.Cog):
                 dm_msg = await ctx.author.send("You are already verified.")
                 dm_ctx = await self.bot.get_context(dm_msg)
             await ctx.author.send("Here's a summary of your information:")
-            await dm_ctx.invoke(self.info, user=ctx.author.id)
+            await dm_ctx.invoke(self.info, user=ctx.author.mention)
         except asyncio.TimeoutError:
             return await ctx.author.send("Session closed! You took too long to respond. Please start a new session.")
 
