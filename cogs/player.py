@@ -4,7 +4,7 @@ from utils.skypy import skypy, exceptions
 from utils.skypy.constants import skill_icons
 from utils.embed import Embed
 from EZPaginator import Paginator
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 
@@ -15,7 +15,7 @@ class Player(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         pass
-    
+
     def format_name(self, name):
         return name + "'s" if name[-1] != "s" else name
 
@@ -36,19 +36,19 @@ class Player(commands.Cog):
             if uname is None:
                 return await self.shortcut_error(ctx)
         return uname
-        
+
     async def make_player(self, ctx, uname, profile):
         if uname and uname.lower() == "me":
             uname, rest = await get_uuid_profileid(self.bot, ctx.author)
-            
+
         if not uname and not profile:
             uname, profile = await get_uuid_profileid(self.bot, ctx.author)
             if uname is None:
                 await self.shortcut_error(ctx)
                 return None
-            
+
         player = await skypy.Player(keys=self.bot.api_keys, uname=uname)
-        
+
         if not profile:
             await player.set_profile_automatically()
         elif profile and profile.capitalize() in player.profiles.keys():
@@ -62,9 +62,27 @@ class Player(commands.Cog):
         return player
 
 
+    async def get_dungeon_embed(self, ctx, player: skypy.Player):
+        if not player.load_dungeon_stats():
+            return await Embed(self.bot, ctx.author, title="Error", description="Couldn't find any dungeon stats for this player.").set_requested_by_footer()
+        class_emojis = {"healer": ":heart:", "mage": ":sparkler:", "berserk": ":crossed_swords:", "archer": ":bow_and_arrow:", "tank": ":shield:"}
+        embed = Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} Catacombs stats on {player.profile_name}", description=f"**Catacombs level: {player.catacomb_level[0]}\nXP to next level: {round(player.catacomb_level[1])}**")
+        embed.add_field(name=":arrows_counterclockwise:  Times played", value="\n".join([f"**Floor {z}:** {round(player.catacomb_times_floor_played[z])}" for z in player.catacomb_times_floor_played]), inline=False)
+        embed.add_field(name=":clock1:  Fastest times", value="\n".join([f"**Floor {z}:** {timedelta(seconds=round(player.catacomb_fasted_times[z] / 1000))}" for z in player.catacomb_fasted_times]), inline=True)
+        embed.add_field(name=":1234:  Best scores", value="\n".join([f"**Floor {z}:** {round(player.catacomb_best_scores[z]):,}" for z in player.catacomb_best_scores]), inline=True)
+        embed.add_field(name=":drop_of_blood:  Mobs killed", value="\n".join([f"**Floor {z}:** {round(player.catacomb_mobs_killed[z])}" for z in player.catacomb_mobs_killed]), inline=True)
+        embed.add_field(name=u"\u200b", value="**Class Levels**", inline=False)
+        for _class in player.catacomb_class_levels:
+            embed.add_field(name=f"{class_emojis[_class.lower()]}  {_class}", value=f"**Level:** {player.catacomb_class_levels[_class][0]}\n**XP to next level:** {round(player.catacomb_class_levels[_class][1])}\n", inline=True)
+        embed.add_field(name=u"\u200b", value=u"\u200b", inline=True)
+        embed.set_thumbnail(url=player.avatar())
+        await embed.set_made_with_love_footer()
+        return embed
+
+
     async def get_skills_embed(self, ctx, player):
         player.load_skills_slayers(False)
-        
+
         if not player.enabled_api["skills"]:
             return await Embed(self.bot, ctx.author, title="Error", description="Your skills API is disabled. Please enable it and try again.").set_requested_by_footer()
 
@@ -81,13 +99,13 @@ class Player(commands.Cog):
         player.load_banking(False)
         player.load_misc(False)
         player.load_skills_slayers(False)
-        
+
         name = self.format_name(player.uname)
 
         percentages = ["crit_chance", "speed", "crit_damage", "bonus_attack_speed", "sea_creature_chance"]
         icons = {
-                'health': "❤️", 'defense': "🛡️", 'effective_health': "💕", 'strength': "⚔️", 
-                'speed': "🏃‍♂️", 'crit_chance': "🎲", 'crit_damage': "☠️", 'bonus_attack_speed': "🗯️", 
+                'health': "❤️", 'defense': "🛡️", 'effective_health': "💕", 'strength': "⚔️",
+                'speed': "🏃‍♂️", 'crit_chance': "🎲", 'crit_damage': "☠️", 'bonus_attack_speed': "🗯️",
                 'intelligence': "🧠", 'sea_creature_chance': "🎣", 'magic_find': "⭐", 'pet_luck': "🦜"}
 
         if player.enabled_api["skills"]:
@@ -114,10 +132,10 @@ class Player(commands.Cog):
         embed.add_field(name="🟢Currently online" if online else "🔴Currently online", value="Yes" if online else "No")
         embed.add_field(name="🚪Join date", value=str(player.join_date.strftime("%Y-%m-%d")))
         embed.add_field(name="⏰Last update", value=str(player.last_save.strftime("%Y-%m-%d")))
-        
+
         return embed
-        
-    
+
+
     async def get_slayer_embed(self, ctx, player : skypy.Player):
         player.load_skills_slayers(False)
         if not player.enabled_api["skills"]:
@@ -136,17 +154,17 @@ class Player(commands.Cog):
         embed.add_field(name="Total Boss Kills",  value=f"{player.total_boss_kills} kills")
         embed.add_field(name="Total Spend", value=f"{player.slayer_total_spend:,} coins")
         return embed
-        
-    
-    
+
+
+
     async def get_profiles_embed(self, ctx, uname):
         player = await skypy.Player(keys=self.bot.api_keys, uname=uname)
-        
+
         name = self.format_name(player.uname)
-        
+
         embed = Embed(self.bot, ctx.author, title=f"{name} profiles")
         await embed.set_requested_by_footer()
-        
+
         for number, profile in enumerate(player.profiles.items()):
             await player.set_profile(profile[1])
             uuids = list(player._api_data["members"].keys())
@@ -163,10 +181,10 @@ class Player(commands.Cog):
 
         embeds = []
         for auction in auctions:
-            
+
             item : skypy.Item = auction[1]
             auction = auction[0]
-            
+
             embed = Embed(self.bot, ctx.author, title=self.format_name(player.uname) + " Auctions", description=f"Item: {auction['item']}")
             await embed.set_made_with_love_footer()
             async def get_uname(uuid):
@@ -193,14 +211,21 @@ class Player(commands.Cog):
             embed.add_field(name="Item", value=value)
             embed.add_field(name="Bids", value=f"**Starting Bid:** {auction['starting_bid']:,}\n**Highest bid:** {auction['highest_bid']:,}\n**Bids:**\n{bids}")
 
-            
+
             embeds.append(embed)
 
         return embeds
-    
-    
+
+    @commands.command(name="dungeons", description="Shows you Catacomb stats.", usage="[username] ([profile])", aliases=["dungeon", "catacomb", "catacombs"])
+    async def dungeons(self, ctx, uname=None, profile=None):
+        player = await self.make_player(ctx, uname, profile)
+        if not player: return
+        async with ctx.typing():
+            embed = await self.get_dungeon_embed(ctx, player)
+            await ctx.send(embed=embed)
+
     @commands.command(name="skills", description="Shows you Skyblock skill levels and xp.", usage="[username] ([profile])", aliases=["skill", "sk"])
-    async def skills(self, ctx, uname=None, profile=None): 
+    async def skills(self, ctx, uname=None, profile=None):
         player = await self.make_player(ctx, uname, profile)
         if not player: return
         async with ctx.typing():
@@ -219,8 +244,8 @@ class Player(commands.Cog):
                 await ctx.send(embed=embed)
         else:
             await ctx.send(f"An error occurred, perhaps this user has not played skyblock.")
-        
-    
+
+
     @commands.command(name="slayer", description="Shows you Slayer stats.", usage="[username] ([profile])", aliases = ["slay", "slayers"])
     async def slayer(self, ctx, uname=None, profile=None):
         player = await self.make_player(ctx, uname, profile)
@@ -228,8 +253,8 @@ class Player(commands.Cog):
         async with ctx.typing():
             embed = await self.get_slayer_embed(ctx, player)
             await ctx.send(embed=embed)
-         
-            
+
+
     @commands.command(name="Profiles", description="Shows you all your available profiles on Skyblock.", usage="[Minecraft Username]")
     async def profiles(self, ctx, uname=None):
         uname = await self.get_uname(ctx, uname)
@@ -252,9 +277,9 @@ class Player(commands.Cog):
         if len(embeds) > 1:
             pages = Paginator(self.bot, msg, embeds=embeds, only=ctx.author, use_more=True)
             await pages.start()
-        
 
-    
+
+
 
 def setup(bot):
     bot.add_cog(Player(bot))

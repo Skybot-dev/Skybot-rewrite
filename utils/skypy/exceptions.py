@@ -30,7 +30,7 @@ class BadNameError(SkyblockError):
 class NeverPlayedSkyblockError(BadNameError):
 	"""This user has never played skyblock before!"""
 	def __init__(self, uname_or_uuid, reason=''):
-		super().__init__()
+		super().__init__(uname_or_uuid)
 		self.uname_or_uuid = uname_or_uuid
 		self.reason = reason
 		

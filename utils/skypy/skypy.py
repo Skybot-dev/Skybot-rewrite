@@ -482,6 +482,7 @@ class Guild(ApiInterface):
 
 			self.load_all()
 
+
 	def load_skills_slayers(self, raise_on_double=True):
 		if self._check_loads('skills slayers', raise_on_double):
 			return self
@@ -662,7 +663,7 @@ class Player(ApiInterface):
 		if size:
 			return f'https://mc-heads.net/avatar/{self.uuid}/{size}'
 		else:
-			return f'https://mc-heads.net/avatar/{self.uuid}'
+			return f'https://mc-heads.net/head/{self.uuid}'
 	
 	def body(self, size=None):
 		if size:
@@ -829,6 +830,22 @@ class Player(ApiInterface):
 		#lgtm [py/unused-local-variable]
 
 		return self
+
+	def load_dungeon_stats(self):
+		try:
+			catacomb_stats = self._api_data["members"][self.uuid]["dungeons"]["dungeon_types"]["catacombs"]
+			player_class_stats = self._api_data["members"][self.uuid]["dungeons"]["player_classes"]
+			self.catacomb_times_floor_played = catacomb_stats["times_played"]
+			self.catacomb_fasted_times = catacomb_stats["fastest_time"]
+			self.catacomb_level = level_from_xp_table(catacomb_stats["experience"], catacomb_level_requirements)
+			self.catacomb_best_scores = catacomb_stats["best_score"]
+			self.catacomb_mobs_killed = catacomb_stats["mobs_killed"]
+			del self.catacomb_times_floor_played["0"], self.catacomb_fasted_times["0"], self.catacomb_best_scores["0"], self.catacomb_mobs_killed["0"]
+			self.catacomb_class_levels = {z.capitalize() :level_from_xp_table(player_class_stats[z]["experience"], catacomb_level_requirements) for z in player_class_stats}
+			return self
+		except (KeyError, TypeError):
+			return None
+
 
 	def load_skills_slayers(self, raise_on_double=True):
 		"""Loads a player's skill and slayer data into RAM
