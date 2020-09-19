@@ -6,10 +6,10 @@ from loguru import logger
 from utils.util import is_staff, get_config
 from discord.ext import commands, tasks
 from utils.embed import Embed
-
+from pymongo.errors import DuplicateKeyError
 class Admin(commands.Cog):
     def __init__(self, bot):
-        self.bot=bot
+        self.bot: skybot = bot
         self.cycleStatus.start()
 
     @commands.Cog.listener()
@@ -62,6 +62,22 @@ class Admin(commands.Cog):
         await ctx.send(embed=embed)
         
     
+    @commands.command()
+    @commands.check(is_staff)
+    async def blacklist(self, ctx, action:str="add", user: int=None, *, reason:str=None):
+        if action.lower() == "add":
+            try:
+                await self.bot.users_db["blacklist"].insert_one({"_id": user, "reason": reason})
+                await ctx.send(f"successfully added `{user}` to the blacklist for reason: `{reason}`")
+            except DuplicateKeyError:
+                return await ctx.send("user already blacklisted")
+        elif action.lower() == "remove":
+            await self.bot.users_db["blacklist"].delete_one({"_id": user})
+            await ctx.send(f"successfully removed `{user}` from the blacklist for reason: `{reason}`")
+        else:
+            raise commands.BadArgument()
+        await self.bot.update_blacklist()
+
     @commands.check(is_staff)
     @commands.command()
     async def timeit(self, ctx, *, command: str):

@@ -611,7 +611,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
     async def eventchannel_set_channel(self, ctx, channel : discord.TextChannel):
         doc = await self.config["eventchannel"].find_one({"_id" : ctx.guild.id})
         try:
-            msg = await channel.send(content="Placeholder. This message will update soon!")
+            msg = await channel.send(embed=await self.get_event_embed())
         except discord.Forbidden:
             return await ctx.send("The bot needs permissions to send a message into that channel!")
         self.eventchannel_msgs.add(msg)
@@ -643,7 +643,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             embed.add_field(name=event.event_name, value=f"Event in:\n**{str(event.event_in)[:-7]}**")
         return embed
     
-    
+
     @tasks.loop(seconds=8)
     async def eventchannel_loop(self):
         docs = self.config["eventchannel"].find({})

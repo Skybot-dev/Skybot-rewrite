@@ -28,7 +28,7 @@ class Skybot(commands.AutoShardedBot):
         else:
             self.slothpixel_key_string = ''
         if self.config["stats_api"] == "default":
-            self.stats_api = "http://hypixel-skybot.ddns.net/stats"
+            self.stats_api = "http://hypixel-skybot.ddns.net:3000/stats"
         else:
             self.stats_api = self.config["stats_api"]
         self.guilds_db = self.db_client["guilds"]
@@ -69,11 +69,22 @@ class Skybot(commands.AutoShardedBot):
                     logger.exception(e)
         
 
+    async def update_blacklist(self):
+        self.blacklisted_users = {z["_id"]: z["reason"] async for z in self.users_db["blacklist"].find({})}
+
+    async def not_blacklisted(self, ctx):
+        if ctx.author.id in self.blacklisted_users:
+            reason = f"for reason: `{self.blacklisted_users[ctx.author.id]}`" or ""
+            await ctx.send(f"You have been blacklisted from using the bot {reason}.")
+            return False
+        else:
+            return True
 
     async def on_ready(self):
+        await self.update_blacklist()
         logger.info("Skybot ready.")
+        self.add_check(self.not_blacklisted)
         
-
 
     async def on_message(self, message):
         if not self.is_ready() : return
@@ -82,7 +93,12 @@ class Skybot(commands.AutoShardedBot):
     async def on_message_edit(self, before, after):
         await self.wait_until_ready()
         await self.process_commands(after)
-        
+
+
+
+
+
+
     async def on_command_completion(self, ctx):
         if not ctx.command_failed and not ctx.command.parents:
             usagestats = self.admin_db["usagestats"]
@@ -91,7 +107,6 @@ class Skybot(commands.AutoShardedBot):
             if result.modified_count == 0:
                 await usagestats.insert_one({"name" : ctx.command.name, "uses" : 1})
             
-
 
     async def on_command_error(self, ctx : commands.Context, exception):
         if isinstance(exception, commands.CommandNotFound):
