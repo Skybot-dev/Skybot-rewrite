@@ -110,7 +110,7 @@ class scammer(commands.Cog, name="Scammer"):
                 anonymous = False
             else:
                 anonymous = True
-            await ctx.author.send("Please confirm that the above information is correct and that you wish to submit the report by replying with `send`\nPlease be aware that submitting a troll or fake report will cause you to be blacklisted from submitting reports in the future.")
+            await ctx.author.send("We want to remind you that we cannot accept reports that don't have any proof. Some examples that count as proof: Minecraft- and/or Desktop Screenshots, video recordings (like Shadowplay, if you don't have an NVIDIA GPU use OBS for recordings) on YouTube, not a cropped screenshot that just shows someone left the party. These can be taken out of context very easily. Oh, and please stop filing unnecessary reports! **__WE WILL REJECT EVERY REPORT WITHOUT ANY PROOF! WE BLACKLIST USERS THAT MAKE FAKE REPORTS AND/OR TROLL REPORTS__**\n**TLDR;**\nProvide good proof when reporting someone via !scammer\nDon't file troll reports\n\nTo submit this request reply `submit`")
             try:
                 confirmation = await self.bot.wait_for('message', timeout=30.0, check=check)
                 if confirmation.content.lower() == "send":
