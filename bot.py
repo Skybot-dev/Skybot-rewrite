@@ -14,9 +14,12 @@ from itertools import cycle
 class Skybot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(self.get_prefix, case_insensitive=True)
+        intents = discord.Intents.default()
+        intents.members = True
+        super().intents = intents
         logging.init_logging()
 
-        self.intents.members = True
+        self.intents = intents
         logger.info([z for z in self.intents])
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
