@@ -10,6 +10,7 @@ from utils.skypy import exceptions
 from utils import logging
 from itertools import cycle
 
+Intent.members = True
 
 class Skybot(commands.AutoShardedBot):
     def __init__(self):
