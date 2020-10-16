@@ -10,13 +10,14 @@ from utils.skypy import exceptions
 from utils import logging
 from itertools import cycle
 
+intents = discord.Intents.default()
+intents.members = True
+
 
 class Skybot(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(self.get_prefix, case_insensitive=True)
-        intents = discord.Intents.default()
-        intents.members = True
-        super().intents = intents
+        super().__init__(self.get_prefix, case_insensitive=True, intents=intents)
+        
         logging.init_logging()
 
         self.intents = intents
