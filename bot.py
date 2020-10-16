@@ -16,6 +16,8 @@ class Skybot(commands.AutoShardedBot):
         super().__init__(self.get_prefix, case_insensitive=True)
         logging.init_logging()
 
+        self.intents.members = True
+        print(self.intents)
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
         self.config = get_config()
