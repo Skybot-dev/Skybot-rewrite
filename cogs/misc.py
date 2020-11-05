@@ -20,7 +20,7 @@ class Misc(commands.Cog, name="Misc"):
     
     @commands.command(name="support", description="Support Server link", aliases=["sup"], usage="")
     async def support(self, ctx):
-        await ctx.send("Join the Support Discord here: https://discord.gg/hmmfXud")
+        await ctx.send("Join the Support Discord here: https://discord.gg/qDCXq3zY5a")
 
     @commands.command(name="invite", description="invite the bot to your server")
     async def invite(self, ctx):
