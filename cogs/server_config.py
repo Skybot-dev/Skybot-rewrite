@@ -37,7 +37,8 @@ async def update_guild(bot, guild, user, name, uuid):
         doc = await bot.guilds_db["verifynick"].find_one({"_id" : guild.id})
         if doc and doc["on"] and await is_verified(bot, user):
             nick = await get_nick(bot, user, doc["format"])
-            member = guild.get_member(user.id)
+            guild : discord.Guild = guild
+            member = await guild.fetch_member(user.id)
             
             await member.edit(nick=nick)
     except discord.Forbidden:
@@ -50,7 +51,7 @@ async def update_guild(bot, guild, user, name, uuid):
             role = guild.get_role(doc["role"])
             if not role: return
             
-            member = guild.get_member(user.id)
+            member = await guild.fetch_member(user.id)
             if role not in member.roles:
                 await member.add_roles(role)
             
@@ -58,7 +59,7 @@ async def update_guild(bot, guild, user, name, uuid):
         pass
     
     #rankroles
-    member = guild.get_member(user.id)
+    member = await guild.fetch_member(user.id)
     roles = [role for role in guild.roles if role.name in rankColors.keys()]
     if not roles: return
     doc = await bot.guilds_db["rankroles"].find_one({"_id" : guild.id})
@@ -94,7 +95,7 @@ async def on_user_unverified(ctx, bot: commands.Bot, user):
     pass
     
 async def on_banscammers_active(ctx, bot):
-    for member in ctx.guild.members:
+    for member in await ctx.guild.chunk():
         user_doc = await bot.users_db["connections"].find_one({"id" : member.id})
         if not await is_verified(bot, user_doc): continue
         uuid = user_doc["uuid"]
@@ -117,7 +118,7 @@ async def get_nick(bot, member, format):
 async def update_nicks(ctx, bot):
     doc = await bot.guilds_db["verifynick"].find_one({"_id" : ctx.guild.id})
     if not doc: return
-    for member in ctx.guild.members:
+    for member in await ctx.guild.chunk():
         try:
             nick = await get_nick(bot, member, doc["format"])
             if hasattr(member, "nick") and member.nick == nick:
@@ -131,7 +132,7 @@ async def on_verifynick_change(ctx, bot, state):
     if state == "on":
         await update_nicks(ctx, bot)
     elif state == "off":
-        for member in ctx.guild.members:
+        for member in await ctx.guild.chunk():
             try:
                 if await is_verified(bot, member):
                     await member.edit(nick=None)
@@ -142,7 +143,7 @@ async def add_roles(ctx, bot):
     doc = await bot.guilds_db["verifyrole"].find_one({"_id" : ctx.guild.id})
     if not doc: return
     role = ctx.guild.get_role(doc["role"])
-    for member in ctx.guild.members:
+    for member in await ctx.guild.chunk():
         try:
             if not await is_verified(bot, member): continue
             if role in member.roles: continue
@@ -154,7 +155,7 @@ async def remove_roles(ctx, bot):
     doc = await bot.guilds_db["verifyrole"].find_one({"_id" : ctx.guild.id})
     if not doc: return
     role = ctx.guild.get_role(doc["role"])
-    for member in ctx.guild.members:
+    for member in await ctx.guild.chunk():
         try:
             if role not in member.roles: continue
             await member.remove_roles(role)
@@ -172,7 +173,7 @@ async def on_role_changed(ctx, bot, before, after):
         return
     if before is None:
         before = after
-    for member in ctx.guild.members:
+    for member in await ctx.guild.chunk():
         if not await is_verified(bot, member): continue
         try:
             if before and before in member.roles:
@@ -212,11 +213,11 @@ async def remove_rankroles(bot, roles, member):
 
 async def on_rankroles_changed(ctx, bot, state, roles):
     if state == "on":
-        for member in ctx.guild.members:
+        for member in await ctx.guild.chunk():
             await remove_rankroles(bot, roles, member)
             await add_rankroles(bot, roles, member)
     elif state == "off":
-        for member in ctx.guild.members:
+        for member in await ctx.guild.chunk():
             await remove_rankroles(bot, roles, member)
             
 

@@ -193,7 +193,7 @@ class Misc(commands.Cog, name="Misc"):
         logguild = self.bot.get_guild(config["support_guild"]["ID"])
         logchannel = logguild.get_channel(config["support_guild"]["log_channel"])
         #msg = await logchannel.fetch_message(config["support_guild"]["stats"]["message"])
-        embed = discord.Embed(title="Guild add", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {len(guild.members)}", color=0x00FF00)
+        embed = discord.Embed(title="Guild add", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {len(await guild.chunk())}", color=0x00FF00)
         await logchannel.send(embed=embed)
     
     @commands.Cog.listener()
@@ -201,7 +201,7 @@ class Misc(commands.Cog, name="Misc"):
         config = self.bot.config
         logguild = self.bot.get_guild(config["support_guild"]["ID"])
         logchannel = logguild.get_channel(config["support_guild"]["log_channel"])
-        embed = discord.Embed(title="Guild remove", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {len(guild.members)}", color=0xff0000)
+        embed = discord.Embed(title="Guild remove", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {len(await guild.chunk())}", color=0xff0000)
         await logchannel.send(embed=embed)
     
     
@@ -217,11 +217,12 @@ class Misc(commands.Cog, name="Misc"):
         
         members = 0
         for guild in guilds:
-            members += len(guild.members)
+            members += len(await guild.chunk())
                 
         guild_members = []
         for guild in guilds:
-            guild_members.append(len(guild.members))
+            guild : discord.Guild
+            guild_members.append(len(await guild.chunk()))
         guilds_sorted = sorted(guild_members, reverse=True)[:10]
         guilds_sorted_str = [str(place + 1) + ". " + str(guild) for place, guild in enumerate(guilds_sorted)]
         final_list = "\n".join(guilds_sorted_str)

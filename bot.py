@@ -16,7 +16,7 @@ intents.members = True
 
 class Skybot(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(self.get_prefix, case_insensitive=True, intents=intents)
+        super().__init__(self.get_prefix, case_insensitive=True, intents=intents, chunk_guilds_at_startup=False)
         
         logging.init_logging()
 

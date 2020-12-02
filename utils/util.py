@@ -28,7 +28,7 @@ async def get_user_guilds(bot : commands.AutoShardedBot, user):
     guilds = []
     for guild in bot.guilds:
         guild : discord.Guild
-        member_ids = [member.id for member in guild.members]
+        member_ids = [member.id for member in await guild.chunk()]
         if user.id in member_ids:
             guilds.append(guild)
     return guilds
