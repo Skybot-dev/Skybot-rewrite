@@ -62,7 +62,7 @@ class Help(commands.Cog):
                     commands.append(f"`{command.name}`")
             list_embed.add_field(name=name, value=", ".join(commands), inline=False)
 
-        list_embed.add_field(name="Links", value="[Contribute](https://discord.gg/r99PR8K) | [Vote](https://top.gg/bot/630106665387032576/vote) | [Invite the Bot to your server](https://discordapp.com/oauth2/authorize?client_id=630106665387032576&scope=bot&permissions=8) | [Support Server](https://discord.gg/mHrw5Tt) | [Todos](https://trello.com/b/2yBAtx82/skybot-rewrite) | [GitHub repo](https://github.com/Skybot-dev/Skybot-rewrite)", inline=False)
+        list_embed.add_field(name="Links", value="[Contribute](https://discord.gg/zqRsduD2JN) | [Vote](https://top.gg/bot/630106665387032576/vote) | [Invite the Bot to your server](https://discordapp.com/oauth2/authorize?client_id=630106665387032576&scope=bot&permissions=8) | [Support Server](https://discord.gg/7fPv2uY2Tf) | [Todos](https://trello.com/b/2yBAtx82/skybot-rewrite) | [GitHub repo](https://github.com/Skybot-dev/Skybot-rewrite)", inline=False)
         return list_embed
 
     @help.command()

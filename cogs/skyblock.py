@@ -158,24 +158,24 @@ class Skyblock(commands.Cog):
         if len(results) + len(bazaar_results) == 1:
             if results:
                 result = list(results.keys())[0]
-                return await ctx.send(embed=Embed(self.bot, ctx.author, title=f"Price of {result} on auction", description=f"Average Price: {results[result]['average_price']}\nPrice range: {results[result]['min_price']} - {results[result]['max_price']}"))
+                return await ctx.send(embed=Embed(self.bot, ctx.author, title=f"Price of {result} on auction", description=f"Average Price: {results[result]['average_price']:,}\nLowest BIN: {results[result]['lowest_bin']:,}\nPrice range: {results[result]['min_price']:,} - {results[result]['max_price']:,}"))
             else:
                 result = list(bazaar_results.keys())[0]
                 flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
-                await ctx.send(embed=Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%"))
+                await ctx.send(embed=Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit']):,}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit']):,}\nProfit Margin: {flip}%"))
         for i, result in enumerate(results):
             if "texture" in item_data[names[result][0]]:
                 url = f"https://sky.lea.moe/head/{item_data[names[result][0]]['texture']}"
             else:
                 url = ''
-            embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} on auction", description=f"Average Price: {results[result]['average_price']}\nPrice range: {results[result]['min_price']} - {results[result]['max_price']}").set_footer(text=f"page {i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
+            embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} on auction", description=f"Average Price: {results[result]['average_price']:,}\nLowest BIN: {results[result]['lowest_bin']:,}\nPrice range: {results[result]['min_price']:,} - {results[result]['max_price']:,}").set_footer(text=f"page {i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
         for i, result in enumerate(bazaar_results):
             if "texture" in item_data[names[result][0]]:
                 url = f"https://sky.lea.moe/head/{item_data[names[result][0]]['texture']}"
             else:
                 url = ''
             flip = round((bazaar_results[result]['buy_summary'][0]['pricePerUnit'] / bazaar_results[result]['sell_summary'][0]['pricePerUnit']) * 100) - 100
-            embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit'])}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit'])}\nProfit Margin: {flip}%").set_footer(text=f"page {len(results) + i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
+            embeds.append(Embed(self.bot, ctx.author, title=f"Price of {result} at the Bazaar", description=f"Instant buy price: {round(bazaar_results[result]['buy_summary'][0]['pricePerUnit']):,}\nInstant sell price: {round(bazaar_results[result]['sell_summary'][0]['pricePerUnit']):,}\nProfit Margin: {flip}%").set_footer(text=f"page {len(results) + i + 1} of {len(results) + len(bazaar_results)}").set_thumbnail(url=url))
         msg = await ctx.send(embed=embeds[0])
         pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)
         await pages.start()
