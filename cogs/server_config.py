@@ -659,8 +659,10 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             if doc["on"] and doc["message"] not in [msg.id for msg in self.eventchannel_msgs]:
                 channel = self.bot.get_channel(doc["channel"])
                 if not channel: continue
-                msg = await channel.fetch_message(doc["message"])
-                if not msg: continue
+                try:
+                    msg = await channel.fetch_message(doc["message"])
+                except discord.NotFound:
+                    continue
                 self.eventchannel_msgs.add(msg)
         msgs = copy.copy(self.eventchannel_msgs)
         for msg in msgs:
