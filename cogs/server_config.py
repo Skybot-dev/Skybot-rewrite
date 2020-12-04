@@ -661,7 +661,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
                 if not channel: continue
                 try:
                     msg = await channel.fetch_message(doc["message"])
-                except discord.NotFound:
+                except (discord.NotFound, discord.Forbidden, discord.HTTPException):
                     continue
                 self.eventchannel_msgs.add(msg)
         msgs = copy.copy(self.eventchannel_msgs)
