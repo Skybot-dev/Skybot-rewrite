@@ -61,7 +61,9 @@ class Skybot(commands.AutoShardedBot):
         for collection in await self.guilds_db.list_collection_names(filter={"name": {"$regex": r"^(?!.*?prefixes).*$"}}):
             guilds.update([z["_id"] async for z in self.guilds_db[collection].find({"on": True})])
         for guild in guilds:
-            await self.get_guild(guild).chunk()
+            guild_obj: discord.Guild = self.get_guild(guild)
+            if guild_obj:
+                await guild_obj.chunk()
 
     async def get_prefix(self, message):
         if not message.guild:
