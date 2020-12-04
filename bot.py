@@ -49,7 +49,19 @@ class Skybot(commands.AutoShardedBot):
         self.events = []
 
         self.load_cogs()
-        
+
+    async def cache_guild_chunk(self, guild: discord.Guild):
+        if not guild.chunked:
+            await guild.chunk()
+        return guild.members
+
+
+    async def cache_guilds(self):
+        guilds = set()
+        for collection in await self.guilds_db.list_collection_names(filter={"name": {"$regex": r"^(?!.*?prefixes).*$"}}):
+            guilds.update([z["_id"] async for z in self.guilds_db[collection].find({"on": True})])
+        for guild in guilds:
+            await self.get_guild(guild).chunk()
 
     async def get_prefix(self, message):
         if not message.guild:
@@ -87,6 +99,7 @@ class Skybot(commands.AutoShardedBot):
 
     async def on_ready(self):
         await self.update_blacklist()
+        await self.cache_guilds()
         logger.info("Skybot ready.")
         self.add_check(self.not_blacklisted)
         

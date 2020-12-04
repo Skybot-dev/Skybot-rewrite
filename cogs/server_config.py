@@ -95,7 +95,7 @@ async def on_user_unverified(ctx, bot: commands.Bot, user):
     pass
     
 async def on_banscammers_active(ctx, bot):
-    for member in await ctx.guild.chunk():
+    for member in await bot.cache_guild_chunk(ctx.guild):
         user_doc = await bot.users_db["connections"].find_one({"id" : member.id})
         if not await is_verified(bot, user_doc): continue
         uuid = user_doc["uuid"]
@@ -118,7 +118,7 @@ async def get_nick(bot, member, format):
 async def update_nicks(ctx, bot):
     doc = await bot.guilds_db["verifynick"].find_one({"_id" : ctx.guild.id})
     if not doc: return
-    for member in await ctx.guild.chunk():
+    for member in await bot.cache_guild_chunk(ctx.guild):
         try:
             nick = await get_nick(bot, member, doc["format"])
             if hasattr(member, "nick") and member.nick == nick:
@@ -132,7 +132,7 @@ async def on_verifynick_change(ctx, bot, state):
     if state == "on":
         await update_nicks(ctx, bot)
     elif state == "off":
-        for member in await ctx.guild.chunk():
+        for member in await bot.cache_guild_chunk(ctx.guild):
             try:
                 if await is_verified(bot, member):
                     await member.edit(nick=None)
@@ -143,7 +143,7 @@ async def add_roles(ctx, bot):
     doc = await bot.guilds_db["verifyrole"].find_one({"_id" : ctx.guild.id})
     if not doc: return
     role = ctx.guild.get_role(doc["role"])
-    for member in await ctx.guild.chunk():
+    for member in await bot.cache_guild_chunk(ctx.guild):
         try:
             if not await is_verified(bot, member): continue
             if role in member.roles: continue
@@ -155,7 +155,7 @@ async def remove_roles(ctx, bot):
     doc = await bot.guilds_db["verifyrole"].find_one({"_id" : ctx.guild.id})
     if not doc: return
     role = ctx.guild.get_role(doc["role"])
-    for member in await ctx.guild.chunk():
+    for member in await bot.cache_guild_chunk(ctx.guild):
         try:
             if role not in member.roles: continue
             await member.remove_roles(role)
@@ -173,7 +173,7 @@ async def on_role_changed(ctx, bot, before, after):
         return
     if before is None:
         before = after
-    for member in await ctx.guild.chunk():
+    for member in await bot.cache_guild_chunk(ctx.guild):
         if not await is_verified(bot, member): continue
         try:
             if before and before in member.roles:
@@ -213,11 +213,11 @@ async def remove_rankroles(bot, roles, member):
 
 async def on_rankroles_changed(ctx, bot, state, roles):
     if state == "on":
-        for member in await ctx.guild.chunk():
+        for member in await bot.cache_guild_chunk(ctx.guild):
             await remove_rankroles(bot, roles, member)
             await add_rankroles(bot, roles, member)
     elif state == "off":
-        for member in await ctx.guild.chunk():
+        for member in await bot.cache_guild_chunk(ctx.guild):
             await remove_rankroles(bot, roles, member)
             
 

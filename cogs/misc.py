@@ -188,20 +188,20 @@ class Misc(commands.Cog, name="Misc"):
     
     
     @commands.Cog.listener()
-    async def on_guild_join(self, guild):
+    async def on_guild_join(self, guild: discord.Guild):
         config = self.bot.config
         logguild = self.bot.get_guild(config["support_guild"]["ID"])
         logchannel = logguild.get_channel(config["support_guild"]["log_channel"])
         #msg = await logchannel.fetch_message(config["support_guild"]["stats"]["message"])
-        embed = discord.Embed(title="Guild add", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {len(await guild.chunk())}", color=0x00FF00)
+        embed = discord.Embed(title="Guild add", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {guild.member_count}", color=0x00FF00)
         await logchannel.send(embed=embed)
     
     @commands.Cog.listener()
-    async def on_guild_remove(self, guild):
+    async def on_guild_remove(self, guild: discord.Guild):
         config = self.bot.config
         logguild = self.bot.get_guild(config["support_guild"]["ID"])
         logchannel = logguild.get_channel(config["support_guild"]["log_channel"])
-        embed = discord.Embed(title="Guild remove", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {len(await guild.chunk())}", color=0xff0000)
+        embed = discord.Embed(title="Guild remove", description=f"NAME: {guild.name} \nID: {guild.id} \nMembers: {guild.member_count}", color=0xff0000)
         await logchannel.send(embed=embed)
     
     
@@ -217,12 +217,12 @@ class Misc(commands.Cog, name="Misc"):
         
         members = 0
         for guild in guilds:
-            members += len(await guild.chunk())
+            members += guild.member_count
                 
         guild_members = []
         for guild in guilds:
             guild : discord.Guild
-            guild_members.append(len(await guild.chunk()))
+            guild_members.append(guild.member_count)
         guilds_sorted = sorted(guild_members, reverse=True)[:10]
         guilds_sorted_str = [str(place + 1) + ". " + str(guild) for place, guild in enumerate(guilds_sorted)]
         final_list = "\n".join(guilds_sorted_str)
