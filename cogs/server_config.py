@@ -38,7 +38,7 @@ async def update_guild(bot, guild, user, name, uuid):
         if doc and doc["on"] and await is_verified(bot, user):
             nick = await get_nick(bot, user, doc["format"])
             guild : discord.Guild = guild
-            member = await guild.fetch_member(user.id)
+            member = guild.get_member(user.id)
             
             await member.edit(nick=nick)
     except discord.Forbidden:
@@ -51,7 +51,7 @@ async def update_guild(bot, guild, user, name, uuid):
             role = guild.get_role(doc["role"])
             if not role: return
             
-            member = await guild.fetch_member(user.id)
+            member = guild.get_member(user.id)
             if role not in member.roles:
                 await member.add_roles(role)
             
@@ -59,7 +59,7 @@ async def update_guild(bot, guild, user, name, uuid):
         pass
     
     #rankroles
-    member = await guild.fetch_member(user.id)
+    member = guild.get_member(user.id)
     roles = [role for role in guild.roles if role.name in rankColors.keys()]
     if not roles: return
     doc = await bot.guilds_db["rankroles"].find_one({"_id" : guild.id})
