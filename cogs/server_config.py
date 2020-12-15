@@ -645,7 +645,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
         return embed
     
 
-    @tasks.loop(seconds=8)
+    @tasks.loop(seconds=30)
     async def eventchannel_loop(self):
         docs = self.config["eventchannel"].find({})
         embed = await self.get_event_embed()
