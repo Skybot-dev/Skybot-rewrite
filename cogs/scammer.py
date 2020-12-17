@@ -1,6 +1,6 @@
 import discord
 from utils.util import is_staff
-from utils.skypy.skypy import fetch_uuid_uname
+from utils.skypy.skypy import fetch_uuid_uname, Player
 from utils.skypy import skypy
 from discord.ext import commands
 from utils.embed import Embed
@@ -212,15 +212,10 @@ class scammer(commands.Cog, name="Scammer"):
                 name, uuid = await fetch_uuid_uname(user)
                 if not uuid:
                     return await ctx.send("Could not find that user")
+            player = await Player(uuid=uuid)
             existing_scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
             if not existing_scammer:
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get("https://api.slothpixel.me/api/players/"+user) as resp:
-                            hypixelplayer = await resp.json()
-                    discordname = hypixelplayer["links"]["DISCORD"]
-                except aiohttp.ContentTypeError as e:
-                    return await ctx.send("An issue occured while processing that request. Please check that you have not mistyped anything and try again.")
+                discord_username = player.discord
                 await self.bot.scammer_db["reports"].update_one({"_id": report_id}, {"$set": {"status": "Confirmed", "mod": str(ctx.author)}})
                 reporter_id = report["reporter_id"]
                 report_reason = report["reason"]
@@ -236,7 +231,7 @@ class scammer(commands.Cog, name="Scammer"):
                 else:
                     scammer_embed = discord.Embed(title=user, description=reason, color=discord.Embed.Empty)
                     await self.bot.scammer_db["scammer_list"].insert_one({"_id":report["uuid"], "reason":reason, "mod":str(ctx.author), "report_id":report_id, "checks": 0, "anonymous": report["anonymous"]})
-                scammer_embed.add_field(name="discord:", value=discordname, inline=False)
+                scammer_embed.add_field(name="discord:", value=discord_username, inline=False)
                 if report["anonymous"]:
                     pub_reporter = "anonymously"
                 else:
