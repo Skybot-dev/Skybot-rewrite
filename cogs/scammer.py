@@ -252,11 +252,13 @@ class scammer(commands.Cog, name="Scammer"):
                     if "list_channel" not in guild:
                         pass
                     else:
-                        channel = guild["list_channel"]
-                        server = self.bot.get_guild(guild["_id"])
-                        send_channel = server.get_channel(channel)
-                        await send_channel.send(embed=scammer_embed)
-                        await asyncio.sleep(0.5)
+                        try:
+                            channel = guild["list_channel"]
+                            server = self.bot.get_guild(guild["_id"])
+                            send_channel = server.get_channel(channel)
+                            await send_channel.send(embed=scammer_embed)
+                        except:
+                            await self.bot.scammer_db["channels"].delete_one(guild)
             else:
                 await ctx.send("This user is already on the scammer list")
                 await ctx.message.delete()
