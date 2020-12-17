@@ -212,7 +212,7 @@ class scammer(commands.Cog, name="Scammer"):
                 name, uuid = await fetch_uuid_uname(user)
                 if not uuid:
                     return await ctx.send("Could not find that user")
-            player = await Player(uuid=uuid)
+            player = await Player(self.bot.api_keys, uuid=uuid)
             existing_scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
             if not existing_scammer:
                 discord_username = player.discord
