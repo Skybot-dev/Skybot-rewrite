@@ -122,19 +122,31 @@ class Player(commands.Cog):
                 stat = str(stat) + "%"
             else:
                 stat = f"{stat:,}"
-            embed.add_field(name=icons[name] + name.replace("_", " ").capitalize(), value=stat)
+            embed.add_field(name=f"{icons[name]} " + name.replace("_", " ").capitalize(), value=stat)
 
-        embed.add_field(name="🌈Fairy souls", value=player.fairy_souls_collected)
+        embed.add_field(name="🌈 Fairy souls", value=player.fairy_souls_collected)
         if player.enabled_api["banking"]:
-            embed.add_field(name="🏦Bank Balance", value=f"{round(player.bank_balance):,}")
-            embed.add_field(name="💰Purse", value=f"{round(player.purse):,}")
+            embed.add_field(name="🏦 Bank Balance", value=f"{round(player.bank_balance):,}")
+            embed.add_field(name="💰 Purse", value=f"{round(player.purse):,}")
         online = await player.is_online()
-        embed.add_field(name="🟢Currently online" if online else "🔴Currently online", value="Yes" if online else "No")
-        embed.add_field(name="🚪Join date", value=str(player.join_date.strftime("%Y-%m-%d")))
-        embed.add_field(name="⏰Last update", value=str(player.last_save.strftime("%Y-%m-%d")))
+        embed.add_field(name="🟢 Currently online" if online else "🔴Currently online", value="Yes" if online else "No")
+        embed.add_field(name="🚪 Join date", value=str(player.join_date.strftime("%Y-%m-%d")))
+        embed.add_field(name="⏰ Last update", value=str(player.last_save.strftime("%Y-%m-%d")))
+        embed.add_field(name=":money_with_wings: Estimated networth", value=f"{round(player.networth['total'] + player.slayer_total_spend):,}")
 
         return embed
 
+    async def get_networth_embed(self, ctx, player: skypy.Player):
+        description = ""
+        networth_elements = {"armor": "Armour", "wardrobe_inventory": "Wardrobe", "inventory": "Inventory",
+                             "enderchest": "Ender Chest", "talisman_bag": "Talisman Bag", "fishing_bag": "Fishing Bag",
+                             "quiver": "Quiver", "potion_bag": "Potion Bag", "purse": "Purse Balance", "bank": "Bank Balance",
+                             "slayers": "Slayer Spend"}
+        for inventory in networth_elements:
+            description += f"**{networth_elements[inventory]}** - {round(player.networth[inventory]):,}\n"
+        embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} estimated networth on {player.profile_name}").set_made_with_love_footer()
+        embed.add_field(name=f"**Total Networth** - {round(player.networth['total'] + player.slayer_total_spend):,}", value=description, inline=False)
+        return embed
 
     async def get_slayer_embed(self, ctx, player : skypy.Player):
         player.load_skills_slayers(False)
@@ -222,6 +234,17 @@ class Player(commands.Cog):
         if not player: return
         async with ctx.typing():
             embed = await self.get_dungeon_embed(ctx, player)
+            await ctx.send(embed=embed)
+
+    @commands.command()
+    async def networth(self, ctx, uname=None, profile=None):
+        player: skypy.Player = await self.make_player(ctx, uname, profile)
+        success = await player.skylea_stats(self.bot.stats_api)
+        if not success:
+            return await ctx.send(f"An error occurred, perhaps this user has not played skyblock.")
+        if not player: return
+        async with ctx.typing():
+            embed = await self.get_networth_embed(ctx, player)
             await ctx.send(embed=embed)
 
     @commands.command(name="skills", description="Shows you Skyblock skill levels and xp.", usage="[username] ([profile])", aliases=["skill", "sk"])

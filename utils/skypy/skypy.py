@@ -1115,10 +1115,17 @@ class Player(ApiInterface):
 
 	async def skylea_stats(self, apiLink):
 		try:
+			self.load_skills_slayers()
+			self.load_banking()
 			async with (await session()).get(f"{apiLink}/{self.uuid}?key={self.__next_key__()}") as data:
 				json = await data.json(content_type=None)
 				if data.status == 200:
 					self.stats = json["profiles"][self.profile]["data"]["stats"]
+					self.networth = json["profiles"][self.profile]["networth"]
+					self.networth["total"] += self.bank_balance + self.purse + self.slayer_total_spend
+					self.networth["purse"] = self.purse
+					self.networth["bank"] = self.bank_balance
+					self.networth["slayers"] = self.slayer_total_spend
 					return True
 		except aiohttp.ClientResponseError:
 			return False
