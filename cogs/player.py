@@ -140,7 +140,7 @@ class Player(commands.Cog):
         description = ""
         networth_elements = {"armor": "Armour", "wardrobe_inventory": "Wardrobe", "inventory": "Inventory",
                              "enderchest": "Ender Chest", "talisman_bag": "Talisman Bag", "fishing_bag": "Fishing Bag",
-                             "quiver": "Quiver", "potion_bag": "Potion Bag", "purse": "Purse Balance", "bank": "Bank Balance",
+                             "quiver": "Quiver", "potion_bag": "Potion Bag", "pets": "Pets", "purse": "Purse Balance", "bank": "Bank Balance",
                              "slayers": "Slayer Spend"}
         for inventory in networth_elements:
             description += f"**{networth_elements[inventory]}** - {round(player.networth[inventory]):,}\n"
