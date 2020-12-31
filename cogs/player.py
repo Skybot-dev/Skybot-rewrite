@@ -138,7 +138,7 @@ class Player(commands.Cog):
 
     async def get_networth_embed(self, ctx, player: skypy.Player):
         description = ""
-        networth_elements = {"armor": "Armour", "wardrobe_inventory": "Wardrobe", "inventory": "Inventory",
+        networth_elements = {"armor": "Armor", "wardrobe_inventory": "Wardrobe", "inventory": "Inventory",
                              "enderchest": "Ender Chest", "talisman_bag": "Talisman Bag", "fishing_bag": "Fishing Bag",
                              "quiver": "Quiver", "potion_bag": "Potion Bag", "pets": "Pets", "purse": "Purse Balance", "bank": "Bank Balance",
                              "slayers": "Slayer Spend"}
