@@ -236,7 +236,7 @@ class Player(commands.Cog):
             embed = await self.get_dungeon_embed(ctx, player)
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(name="networth", description="View a more in-depth breakdown of your estimated networth.", usage="[username] ([profile])", aliases=["nw"])
     async def networth(self, ctx, uname=None, profile=None):
         player: skypy.Player = await self.make_player(ctx, uname, profile)
         success = await player.skylea_stats(self.bot.stats_api)
