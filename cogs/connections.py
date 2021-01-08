@@ -22,7 +22,7 @@ class Connections(commands.Cog):
                       usage="([username])")
     async def verify_direct(self, ctx, username=None):
         await ctx.invoke(self.verify, username=username)
-    
+
     @commands.command(name="usersetup",
                       description="Set up your account details and preferences",)
     async def setupdirect(self, ctx):
@@ -93,7 +93,7 @@ class Connections(commands.Cog):
             return await ctx.author.send("Session closed! You took too long to respond. Please start a new session.")
 
     @account.command(name="link", description="Link your username to you Discord account.", usage="[username]")
-    async def link(self, ctx, username):    
+    async def link(self, ctx, username):
         mc_user = await skypy.Player(self.bot.api_keys, uname=username)
         user_db = await self.connections.find_one({"id" : ctx.author.id})
         uuid_dbs = self.connections.find({"uuid" : mc_user.uuid})
@@ -104,13 +104,14 @@ class Connections(commands.Cog):
             if uuid_db and uuid_db["id"] == ctx.author.id:
                 return await ctx.send("You already have this Minecraft account linked to your Discord account.")
             if uuid_db and uuid_db["verified"]:
-                return await ctx.send("This username has already been verified by the owner, you can't link to it anymore.")
+                await ctx.send("This username has already been verified by the owner, you can't link to it anymore.")
+                return False
 
         if user_db:
             before = await skypy.fetch_uuid_uname(user_db["uuid"])
             await self.connections.update_one(user_db, {"$set" : {"uuid" : mc_user.uuid, "verified" : False}, "$unset" : {"profile_id" : ""}})
             return await ctx.send(f"Successfully Updated your link from `{before[0]}` to `{mc_user.uname}`.")
-        
+
         await self.connections.insert_one({"id" : ctx.author.id, "uuid" : mc_user.uuid, "verified" : False})
         return await ctx.send(f"Successfully linked `{mc_user.uname}` to your Discord account.")
 
@@ -140,13 +141,13 @@ class Connections(commands.Cog):
                     await self.connections.update_one(user_db, {"$set" : {"verified" : True}})
                     await ctx.send("Successfully verified!")
                     return await on_user_verified(ctx, self.bot, username)
-                
+
                 await ctx.send("You are already verified.")
                 return await on_user_verified(ctx, self.bot, username)
             return await ctx.send(f"Your link between Hypixel and Discord is incorrect.\nHypixel: {player.discord}\nDiscord: {name}")
-        
-        await ctx.invoke(self.link, username=username)
-        await ctx.reinvoke()
+
+        if await self.link(ctx, username=username):
+            await ctx.reinvoke()
 
     @account.command(name="profile", description="Set your default profile.", usage="[profile]")
     async def profile(self, ctx, profile):
@@ -158,7 +159,7 @@ class Connections(commands.Cog):
         profiles = player.profiles
         if not profile.capitalize() in profiles.keys():
             return await ctx.send("You have no profile with that name.\nYour Profiles: " + ", ".join(profiles.keys()))
-        
+
         await self.connections.update_one(user_db, {"$set" : {"profile_id" : profiles[profile.capitalize()]}})
         await ctx.send(f"Set your default profile to `{profile.capitalize()}`")
         return False
@@ -196,12 +197,12 @@ class Connections(commands.Cog):
             user_db = await self.connections.find_one({"id" : user.id})
 
             if user_db:
-                embed = await self.get_info_embed(ctx, user, user_db) 
+                embed = await self.get_info_embed(ctx, user, user_db)
                 return await ctx.send(embed=embed)
             if user != ctx.author:
                 return await ctx.send("This user is not linked to the bot.")
             return await ctx.send("You are not linked to the bot.")
-        
+
         if isinstance(user, str):
             uname, uuid = await skypy.fetch_uuid_uname(user)
             dc_users = self.connections.find({"uuid" : uuid})
@@ -220,7 +221,7 @@ class Connections(commands.Cog):
                 return
             return await ctx.send(embed=await self.get_info_embed(ctx, None, {"uuid" : uuid, "verified" : False}, linked=False))
 
-        
+
         raise commands.BadArgument(message="Discord User or Minecraft username")
 
 
