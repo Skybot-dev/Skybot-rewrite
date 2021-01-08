@@ -5,9 +5,8 @@ from utils.skypy.constants import skill_icons
 from utils.embed import Embed
 from EZPaginator import Paginator
 from datetime import datetime, timedelta
-
-
-
+import discord
+import typing
 class Player(commands.Cog):
     def __init__(self, bot):
         self.bot : commands.Bot = bot
@@ -38,6 +37,11 @@ class Player(commands.Cog):
         return uname
 
     async def make_player(self, ctx, uname, profile):
+        if isinstance(uname, discord.user.BaseUser):
+            uname, rest = await get_uuid_profileid(self.bot, uname)
+            if not uname:
+                return await ctx.send("This user has not linked their Minecraft account") and None
+                # return None
         if uname and uname.lower() == "me":
             uname, rest = await get_uuid_profileid(self.bot, ctx.author)
 
@@ -229,7 +233,7 @@ class Player(commands.Cog):
         return embeds
 
     @commands.command(name="dungeons", description="Shows you Catacomb stats.", usage="[username] ([profile])", aliases=["dungeon", "catacomb", "catacombs"])
-    async def dungeons(self, ctx, uname=None, profile=None):
+    async def dungeons(self, ctx, uname: typing.Union[discord.User, str]=None, profile=None):
         player = await self.make_player(ctx, uname, profile)
         if not player: return
         async with ctx.typing():
@@ -237,7 +241,7 @@ class Player(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.command(name="networth", description="View a more in-depth breakdown of your estimated networth.", usage="[username] ([profile])", aliases=["nw"])
-    async def networth(self, ctx, uname=None, profile=None):
+    async def networth(self, ctx, uname: typing.Union[discord.User, str]=None, profile=None):
         player: skypy.Player = await self.make_player(ctx, uname, profile)
         success = await player.skylea_stats(self.bot.stats_api)
         if not success:
@@ -248,7 +252,7 @@ class Player(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.command(name="skills", description="Shows you Skyblock skill levels and xp.", usage="[username] ([profile])", aliases=["skill", "sk"])
-    async def skills(self, ctx, uname=None, profile=None):
+    async def skills(self, ctx, uname: typing.Union[discord.User, str]=None, profile=None):
         player = await self.make_player(ctx, uname, profile)
         if not player: return
         async with ctx.typing():
@@ -257,7 +261,7 @@ class Player(commands.Cog):
 
 
     @commands.command(name="stats", description="Shows you Skyblock profile stats like health, strength and more.", usage="[username] ([profile])", aliases=["stat"])
-    async def stats(self, ctx, uname=None, profile=None):
+    async def stats(self, ctx, uname: typing.Union[discord.User, str]=None, profile=None):
         player : skypy.Player = await self.make_player(ctx, uname, profile)
         if not player: return
         success = await player.skylea_stats(self.bot.stats_api)
@@ -270,7 +274,7 @@ class Player(commands.Cog):
 
 
     @commands.command(name="slayer", description="Shows you Slayer stats.", usage="[username] ([profile])", aliases = ["slay", "slayers"])
-    async def slayer(self, ctx, uname=None, profile=None):
+    async def slayer(self, ctx, uname: typing.Union[discord.User, str]=None, profile=None):
         player = await self.make_player(ctx, uname, profile)
         if not player: return
         async with ctx.typing():
@@ -287,11 +291,9 @@ class Player(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.command(name="auctions", description="Shows you SKyblock auctions and information about them.", usage="[username]", aliases=["ah", "auction"])
-    async def auctions(self, ctx, uname=None):
-        uname = await self.get_uname(ctx, uname)
-        if not uname: return
-        player : skypy.Player = await skypy.Player(keys=self.bot.api_keys, uname=uname)
-        await player.set_profile_automatically()
+    async def auctions(self, ctx, uname: typing.Union[discord.User, str]=None, profile=None):
+        player: skypy.Player = await self.make_player(ctx, uname, profile)
+        if not player: return
         async with ctx.typing():
             embeds = await self.get_auctions_embeds(ctx, player)
             if not embeds:
