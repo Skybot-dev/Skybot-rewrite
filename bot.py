@@ -10,6 +10,8 @@ from utils.skypy import exceptions
 from utils import logging
 from itertools import cycle
 
+from discord_slash import SlashCommand, SlashContext, manage_commands, SlashCommandOptionType
+
 intents = discord.Intents.default()
 intents.members = True
 
@@ -47,6 +49,8 @@ class Skybot(commands.AutoShardedBot):
             logger.warning("PLEASE SET AT LEAST ON API KEY, ELSE THE BOT WON'T WORK.")
 
         self.events = []
+        
+        self.slash = SlashCommand(self, auto_register=True, auto_delete=True)
 
         self.load_cogs()
 
@@ -165,7 +169,22 @@ class Skybot(commands.AutoShardedBot):
         logger.exception("".join(traceback_lines))
         logger.exception(exception)
 
+    async def on_slash_command_error(self, ctx, exception):
         
+        if isinstance(exception, exceptions.NeverPlayedSkyblockError):
+            return await ctx.send(content="This player never played Hypixel Skyblock.")
+        if isinstance(exception, exceptions.BadNameError):
+            return await ctx.send(content="This username does not exist in Minecraft.")
+        if isinstance(exception, exceptions.ExternalAPIError):
+            logger.exception(exception)
+            return await ctx.send(content="There has been an error while requesting the data from the API! Please try again after waiting some time..", delete_after=12)
+        if isinstance(exception, exceptions.SkyblockError):
+            logger.exception(exception)
+            return await ctx.send(content="An unknown error occurred. Please report this to the devs.")
+        traceback_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
+        logger.exception("".join(traceback_lines))
+        logger.exception(exception)
+
 
 if __name__ == "__main__":
     skybot = Skybot()

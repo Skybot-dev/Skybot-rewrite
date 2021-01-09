@@ -1,4 +1,5 @@
 from discord.ext import commands
+from discord.ext.commands.context import Context
 from utils.util import get_uuid_profileid
 from utils.skypy import skypy, exceptions
 from utils.skypy.constants import skill_icons
@@ -291,7 +292,7 @@ class Player(commands.Cog):
             embed = await self.get_profiles_embed(ctx, uname)
             await ctx.send(embed=embed)
 
-    @commands.command(name="auctions", description="Shows you SKyblock auctions and information about them.", usage="[username]", aliases=["ah", "auction"])
+    @commands.command(name="auctions", description="Shows you Skyblock auctions and information about them.", usage="[username]", aliases=["ah", "auction"])
     async def auctions(self, ctx, uname=None, profile=None):
         player: skypy.Player = await self.make_player(ctx, uname, profile)
         if not player: return

@@ -23,6 +23,9 @@ def init_logging():
     discord_logger = logging.getLogger('discord')
     discord_logger.setLevel(logging.INFO)
     discord_logger.addHandler(InterceptHandler())
+    slash_logger = logging.getLogger("discord_slash")
+    slash_logger.setLevel(logging.INFO)
+    slash_logger.addHandler(InterceptHandler())
 
     logger.add("skybot.log", enqueue=True, level="INFO")
 
