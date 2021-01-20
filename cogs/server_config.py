@@ -430,11 +430,11 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
     @commands.has_guild_permissions(administrator=True)
     @commands.cooldown(1, 60, commands.BucketType.guild)
     @commands.guild_only()
-    @verifynick.command(name="on", description="Turns on that a members nickname gets changed to their IGN after they verify.", usage="")
+    @verifynick.command(name="on", description="Turns on that a members nickname gets changed to their IGN after they verify. MAKE SURE THAT THE BOT HAS A ROLE ABOVE ALL USERS! Otherwise it won't work!", usage="")
     async def verifynick_on(self, ctx):
         if not await self.set_setting(ctx, "verifynick", True):
             await self.config["verifynick"].insert_one({"_id": ctx.guild.id, "on": True, "format" : "{ign}"})
-        await ctx.send("Setting `verifynick` is now `On` in this server.")
+        await ctx.send("Setting `verifynick` is now `On` in this server. MAKE SURE THAT THE BOT HAS A ROLE ABOVE ALL USERS! Otherwise it won't work!")
         await on_verifynick_change(ctx, self.bot, "on")
     
 
@@ -471,7 +471,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
         await ctx.send(embed=embed)
 
 
-    @commands.group(name="verifyrole", description="Verified members get a set role.", usage="[on/off/info/set]", invoke_without_command=True)
+    @commands.group(name="verifyrole", description="Verified members get a set role. MAKE SURE THAT THE BOT HAS A ROLE ABOVE ALL USERS! Otherwise it won't work!", usage="[on/off/info/set]", invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
     @commands.guild_only()
     async def verifyrole(self, ctx):
@@ -485,7 +485,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
         if not await self.set_setting(ctx, "verifyrole", True):
             await ctx.send("Please set a role first using the `set` argument.")
             return await ctx.invoke(self.bot.get_command("help show_command"), arg=self.verifyrole_set_role)
-        await ctx.send("Setting `verifyrole` is now `On` in this server.")
+        await ctx.send("Setting `verifyrole` is now `On` in this server. MAKE SURE THAT THE BOT HAS A ROLE ABOVE ALL USERS! Otherwise it won't work!")
         await on_verifyrole_change(ctx, self.bot, "on")
     
     @commands.has_guild_permissions(administrator=True)
@@ -522,7 +522,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
         await ctx.send(embed=embed)
     
 
-    @commands.group(name="rankroles", description="Give members their Hypixel ingame rank as a role.", usage="[on/off/info/setup]", invoke_without_command=True)
+    @commands.group(name="rankroles", description="Give members their Hypixel ingame rank as a role. MAKE SURE THAT THE BOT HAS A ROLE ABOVE ALL USERS! Otherwise it won't work!", usage="[on/off/info/setup]", invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
     @commands.guild_only()
     async def rankroles(self, ctx):
@@ -538,7 +538,7 @@ class ServerConfig(commands.Cog, name="ServerConfig"):
             return await ctx.send("Please setup the rankroles first using the `setup` argument.")
         if not await self.set_setting(ctx, "rankroles", True):
             await self.config["rankroles"].insert_one({"_id": ctx.guild.id, "on": True})
-        await ctx.send("Setting `rankroles` is now `On` in this server.")
+        await ctx.send("Setting `rankroles` is now `On` in this server. MAKE SURE THAT THE BOT HAS A ROLE ABOVE ALL USERS! Otherwise it won't work!")
         await on_rankroles_changed(ctx, self.bot, "on", roles)
     
     @commands.has_guild_permissions(administrator=True)
