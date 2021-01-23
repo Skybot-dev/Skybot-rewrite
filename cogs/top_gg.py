@@ -8,7 +8,7 @@ class TopGG(commands.Cog):
     """Handles interactions with the top.gg API"""
 
     def __init__(self, bot):
-        self.bot = bot
+        self.bot : commands.Bot = bot
         self.config = self.bot.config["top_gg"]
         if self.config["enabled"]:
             self.token = self.config["token"] # set this to your DBL token
@@ -30,7 +30,7 @@ class TopGG(commands.Cog):
     async def check_votes(self):
         if not self.config["enabled"]: return
         
-        support_guild = self.bot.get_guild(self.bot.config["support_guild"]["ID"])
+        support_guild = await self.bot.fetch_guild(self.bot.config["support_guild"]["ID"])
         role = support_guild.get_role(self.config["voter_role"])
         if not role: return
         
