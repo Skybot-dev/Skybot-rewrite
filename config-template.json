@@ -32,6 +32,10 @@
     "statuspage": {
         "enabled": false
     },
+    "top_gg" : {
+        "enabled": false,
+        "token": ""
+    },
     "bot_invite": "",
     "status_list": [{"type": "playing", "content": "skyblock"}]
 }

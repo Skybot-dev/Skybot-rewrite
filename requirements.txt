@@ -6,3 +6,4 @@ dnspython
 EZPaginator
 py-trello
 discord-py-slash-command
+dblpy
