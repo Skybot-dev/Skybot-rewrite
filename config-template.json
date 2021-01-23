@@ -34,7 +34,8 @@
     },
     "top_gg" : {
         "enabled": false,
-        "token": ""
+        "token": "",
+        "voter_role" : 0
     },
     "bot_invite": "",
     "status_list": [{"type": "playing", "content": "skyblock"}]
