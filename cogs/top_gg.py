@@ -15,7 +15,6 @@ class TopGG(commands.Cog):
             self.dblpy = dbl.DBLClient(self.bot, self.token, autopost=True) # Autopost will post your guild count every 30 minutes
         self.check_votes.start()
         
-    @commands.Cog.listener()
     def cog_unload(self):
         self.check_votes.cancel()
 
