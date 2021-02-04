@@ -103,7 +103,7 @@ class scammer(commands.Cog, name="Scammer"):
                 return await ctx.author.send("You must include evidence for a report. Report cancelled")
             await ctx.author.send("Do you wish for the report to be anonymous? Anonymous reports will still have the same data saved, but your name will not be publically credited for reporting the scammer. Full credit is given to non-anonymous reports. `Y/N` (replying with anything but 'no' or 'n' will result in an anonymous report")
             try:
-                anon = await self.bot.wait_for('message', timeout=90, check=check)
+                anon = await self.bot.wait_for('message', timeout=300, check=check)
             except asyncio.TimeoutError:
                 await ctx.author.send("Report timed out")
             if anon.content.lower() == "n" or anon.content.lower() == "no":
