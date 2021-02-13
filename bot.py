@@ -18,7 +18,7 @@ intents.members = True
 
 class Skybot(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(self.get_prefix, case_insensitive=True, intents=intents, chunk_guilds_at_startup=False)
+        super().__init__(self.get_prefix, case_insensitive=True, intents=intents)
         
         logging.init_logging()
 
@@ -60,15 +60,6 @@ class Skybot(commands.AutoShardedBot):
         return guild.members
 
 
-    async def cache_guilds(self):
-        guilds = set()
-        for collection in await self.guilds_db.list_collection_names(filter={"name": {"$regex": r"^(?!.*?prefixes).*$"}}):
-            guilds.update([z["_id"] async for z in self.guilds_db[collection].find({"on": True})])
-        for guild in guilds:
-            guild_obj: discord.Guild = self.get_guild(guild)
-            if guild_obj:
-                await guild_obj.chunk()
-
     async def get_prefix(self, message):
         if not message.guild:
             return commands.when_mentioned_or(self.config["default_prefix"])(self, message)
@@ -105,7 +96,6 @@ class Skybot(commands.AutoShardedBot):
 
     async def on_ready(self):
         await self.update_blacklist()
-        await self.cache_guilds()
         logger.info("Skybot ready.")
         self.add_check(self.not_blacklisted)
         
