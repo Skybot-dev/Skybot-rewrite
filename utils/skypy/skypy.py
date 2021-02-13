@@ -867,7 +867,8 @@ class Player(ApiInterface):
 				self.skill_xp[skill] = xp
 				self.skills[skill], self.skills_needed_xp[skill] = level_from_xp_table(
 					xp,
-					runecrafting_xp_requirements if skill == 'runecrafting' else skill_xp_requirements
+					runecrafting_xp_requirements if skill == 'runecrafting' else (skill_xp_requirements[:50]
+																				  if skill in max_level_50_skills else skill_xp_requirements)
 				)
 				if self.skills[skill] == 24 and skill == 'runecrafting':
 					self.skills[skill] == 25
