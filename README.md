@@ -68,7 +68,5 @@ config.json must be filled out correctly in order for the bot to function proper
 - [@juli324](https://github.com/Juli324)- server administrator
 ##### If you feel that you have something to add, feel free to fork the repository and open a pull request.
 # Links
-- join the [support server](https://discord.gg/wx6PnHj) on discord
+- join the [support server](https://discord.gg/7fPv2uY2Tf) on discord
 - vote for the bot on [top.gg](https://top.gg/bot/630106665387032576)
-
-
