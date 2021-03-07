@@ -138,7 +138,7 @@ class Player(commands.Cog):
         embed.add_field(name="🟢 Currently online" if online else "🔴Currently online", value="Yes" if online else "No")
         embed.add_field(name="🚪 Join date", value=str(player.join_date.strftime("%Y-%m-%d")))
         embed.add_field(name="⏰ Last update", value=str(player.last_save.strftime("%Y-%m-%d")))
-        embed.add_field(name=":money_with_wings: Estimated networth", value=f"{round(player.networth['total'] + player.slayer_total_spend):,}")
+        embed.add_field(name=":money_with_wings: Estimated networth", value=f"{round(player.networth['total']):,}")
 
         return embed
 
@@ -151,7 +151,7 @@ class Player(commands.Cog):
         for inventory in networth_elements:
             description += f"**{networth_elements[inventory]}** - {round(player.networth[inventory]):,}\n"
         embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} estimated networth on {player.profile_name}").set_made_with_love_footer()
-        embed.add_field(name=f"**Total Networth** - {round(player.networth['total'] + player.slayer_total_spend):,}", value=description, inline=False)
+        embed.add_field(name=f"**Total Networth** - {round(player.networth['total']):,}", value=description, inline=False)
         return embed
 
     async def get_slayer_embed(self, ctx, player : skypy.Player):
