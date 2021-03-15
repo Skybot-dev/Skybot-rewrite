@@ -50,7 +50,7 @@ class Skybot(commands.AutoShardedBot):
 
         self.events = []
         
-        self.slash = SlashCommand(self, auto_register=True, auto_delete=True)
+        self.slash = SlashCommand(self, sync_commands=True)
 
         self.load_cogs()
 

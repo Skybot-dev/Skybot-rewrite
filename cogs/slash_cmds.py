@@ -11,15 +11,7 @@ from EZPaginator import Paginator
 
 class SlashCmds(commands.Cog):
     def __init__(self, bot):
-        # if not hasattr(bot, "slash"):
-        #     # Creates new SlashCommand instance to bot if bot doesn't have.
-        #     bot.slash = SlashCommand(bot, override_type=True)
         self.bot : Skybot = bot
-        self.bot.slash.get_cog_commands(self)
-        
-    def cog_unload(self):
-        self.bot.slash.remove_cog_commands(self)
-        
         
     async def shortcut_error(self, ctx):
         embed = await Embed(self.bot, ctx.author, title="Error", description="You can only use this shortcut if you link a username to your Discord account.").set_requested_by_footer()
