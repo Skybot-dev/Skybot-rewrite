@@ -302,7 +302,7 @@ class Player(commands.Cog):
                 return await ctx.send(f"{player.uname} has no auctions running.")
             msg = await ctx.send(embed=embeds[0])
         if len(embeds) > 1:
-            pages = Paginator(self.bot, msg, embeds=embeds, only=ctx.author, use_more=True)
+            pages = Paginator(self.bot, msg, embeds=embeds, only=ctx.author, use_extend=True)
             await pages.start()
 
 

@@ -81,7 +81,7 @@ class Misc(commands.Cog, name="Misc"):
             #embeds.append(await self.view_suggestion(ctx, str(i["_id"])))
             embeds.append(await self.view_suggestion(ctx, str(i["_id"])))
         msg = await ctx.send(embed=embeds[0])
-        pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)
+        pages = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_extend=True, only=ctx.author)
         await pages.start()
         # except Exception as e:
         #     await ctx.send(e)
@@ -181,7 +181,7 @@ class Misc(commands.Cog, name="Misc"):
         if not count == 0:
             msg = await ctx.send(embed=Embeds[0])
             if count > 0:
-                pages = Paginator(self.bot, msg, embeds=Embeds, timeout=60, use_more=True, only=ctx.author)
+                pages = Paginator(self.bot, msg, embeds=Embeds, timeout=60, use_extend=True, only=ctx.author)
                 await pages.start()
         else:
             return await ctx.send("Could not find any changelogs")

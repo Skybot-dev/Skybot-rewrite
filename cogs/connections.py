@@ -216,7 +216,7 @@ class Connections(commands.Cog):
 
                 msg = await ctx.send(embed=embeds[0])
                 if len(embeds) > 1:
-                    paginator = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_more=True, only=ctx.author)
+                    paginator = Paginator(self.bot, msg, embeds=embeds, timeout=60, use_extend=True, only=ctx.author)
                     await paginator.start()
                 return
             return await ctx.send(embed=await self.get_info_embed(ctx, None, {"uuid" : uuid, "verified" : False}, linked=False))
