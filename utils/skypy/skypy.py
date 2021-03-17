@@ -915,7 +915,7 @@ class Player(ApiInterface):
 		self.total_boss_kills = 0
 		self.slayer_total_spend = 0
 		digit = lambda x: [int(i) for i in x.split('_') if i.isdigit()]
-		costs = [100, 2000, 10000, 50000]
+		costs = [100, 2000, 10000, 50000, 100000]
 		if 'slayer_bosses' in v:
 			for slayer in slayers:
 				self.slayer_boss_kills[slayer] = {}
