@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord_slash import SlashContext, SlashCommandOptionType, cog_ext, manage_commands
 from cogs.player import Player
 from utils.embed import Embed
+from utils.expander import Expander
 from utils.util import get_uuid_profileid, has_is_staff, is_staff
 from utils.skypy import skypy, exceptions
 from EZPaginator import Paginator
@@ -77,6 +78,7 @@ class SlashCmds(commands.Cog):
     @cog_ext.cog_slash(name="dungeons", description="Shows you Catacomb stats.", options=[manage_commands.create_option("username", "Minecraft username/Discord user if linked.", SlashCommandOptionType.STRING, False), 
                                                                                                                                       manage_commands.create_option("profile", "Profile name (There are more profile names then suggested!)", SlashCommandOptionType.STRING, False, choices=profiles)])
     async def dungeons(self, ctx : SlashContext, username=None, profile=None):
+        await ctx.respond()
         player = await self.make_player(ctx=ctx, uname=username, profile=profile)
         if not player: return
         embed = await Player.get_dungeon_embed(self, ctx=ctx, player=player)
@@ -85,18 +87,21 @@ class SlashCmds(commands.Cog):
     @cog_ext.cog_slash(name="networth", description="View a more in-depth breakdown of your estimated networth.", options=[manage_commands.create_option("username", "Minecraft username/Discord user if linked.", SlashCommandOptionType.STRING, False), 
                                                                                                                                       manage_commands.create_option("profile", "Profile name (There are more profile names then suggested!)", SlashCommandOptionType.STRING, False, choices=profiles)])
     async def networth(self, ctx : SlashContext, username=None, profile=None):
+        await ctx.respond()
         player = await self.make_player(ctx=ctx, uname=username, profile=profile)
         if not player: return
         success = await player.skylea_stats(self.bot.stats_api)
         if success:
-            embed = await Player.get_networth_embed(self, ctx=ctx, player=player)
-            await ctx.send(embeds=[embed])
+            embeds = await Player.get_networth_embeds(self, ctx=ctx, player=player)
+            msg = await ctx.send(embed=embeds[0])
+            await Expander(self.bot, msg, embeds=embeds, timeout=120, only=ctx.author).start()
         else:
             await ctx.send(content=f"An error occurred, perhaps this user has not played skyblock.")    
         
     @cog_ext.cog_slash(name="skills", description="Shows you Skyblock skill levels and xp.", options=[manage_commands.create_option("username", "Minecraft username/Discord user if linked.", SlashCommandOptionType.STRING, False), 
                                                                                                                                       manage_commands.create_option("profile", "Profile name (There are more profile names then suggested!)", SlashCommandOptionType.STRING, False, choices=profiles)])
     async def skills(self, ctx : SlashContext, username=None, profile=None):
+        await ctx.respond()
         player = await self.make_player(ctx=ctx, uname=username, profile=profile)
         if not player: return
         embed = await Player.get_skills_embed(self, ctx=ctx, player=player)
@@ -105,6 +110,7 @@ class SlashCmds(commands.Cog):
     @cog_ext.cog_slash(name="stats", description="Shows you Skyblock profile stats like health, strength and more.", options=[manage_commands.create_option("username", "Minecraft username/Discord user if linked.", SlashCommandOptionType.STRING, False), 
                                                                                                                                       manage_commands.create_option("profile", "Profile name (There are more profile names then suggested!)", SlashCommandOptionType.STRING, False, choices=profiles)])
     async def stats(self, ctx : SlashContext, username=None, profile=None):
+        await ctx.respond()
         player = await self.make_player(ctx=ctx, uname=username, profile=profile)
         if not player: return
         success = await player.skylea_stats(self.bot.stats_api)
@@ -117,6 +123,7 @@ class SlashCmds(commands.Cog):
     @cog_ext.cog_slash(name="slayer", description="Shows you Slayer stats.", options=[manage_commands.create_option("username", "Minecraft username/Discord user if linked.", SlashCommandOptionType.STRING, False), 
                                                                                                                                       manage_commands.create_option("profile", "Profile name (There are more profile names then suggested!)", SlashCommandOptionType.STRING, False, choices=profiles)])
     async def slayer(self, ctx : SlashContext, username=None, profile=None):
+        await ctx.respond()
         player = await self.make_player(ctx=ctx, uname=username, profile=profile)
         if not player: return
         embed = await Player.get_slayer_embed(self, ctx=ctx, player=player)
@@ -124,6 +131,7 @@ class SlashCmds(commands.Cog):
         
     @cog_ext.cog_slash(name="profiles", description="Shows you all your available profiles on Skyblock.", options=[manage_commands.create_option("username", "Minecraft username/Discord user if linked.", SlashCommandOptionType.STRING, False)])
     async def profiles(self, ctx : SlashContext, username=None):
+        await ctx.respond()
         uname = await self.get_uname(ctx, username)
         if not uname: return
         embed : Embed = await Player.get_profiles_embed(self, ctx=ctx, uname=uname)
@@ -164,6 +172,7 @@ class SlashCmds(commands.Cog):
         
     @cog_ext.cog_slash(name="help", description="List commands and command info.", guild_ids=[636937988248436736])
     async def help(self, ctx : SlashContext):
+        await ctx.respond()
         embed = await self.get_help_embed(ctx)
         await ctx.send(embeds=[embed])
 
