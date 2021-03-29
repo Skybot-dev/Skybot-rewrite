@@ -4,8 +4,8 @@ from trello import TrelloClient
 from discord.ext import commands
 
 
-def get_config():
-    with open("config.json", "r") as fp:
+def get_config(filename="config"):
+    with open(f"{filename}.json", "r") as fp:
         return json.load(fp)
 def trelloinit(config):
     trelloconfig = config["trello"]

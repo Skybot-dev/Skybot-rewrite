@@ -1,0 +1,23 @@
+{
+  "slayers": {
+    "spider": "",
+    "zombie": "",
+    "wolf": ""
+  },
+  "inventories": {
+    "armor": "",
+    "wardrobe_inventory": "",
+    "inventory": "",
+    "enderchest": "",
+    "talisman_bag": "",
+    "fishing_bag": "",
+    "quiver": "",
+    "potion_bag": "",
+    "pets": "",
+    "purse": "",
+    "bank": ""
+  },
+  "misc": {
+    "recombobulator": ""
+  }
+}

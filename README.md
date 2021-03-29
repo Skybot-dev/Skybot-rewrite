@@ -58,6 +58,9 @@ config.json must be filled out correctly in order for the bot to function proper
     "status_list": [{"type": "playing", "content": "skyblock"}] // list of statuses for the bot (required)
 }
 ```
+### emojis.json
+`emojis.json` must be filled out with the contents of `emojis-template.json`
+Each value can be either an emoji (as unicode or discord `<:name:id>` format) or any string. If you do not wish to use emojis, you can leave each value as an empty string.
 ### requirements
 - the bot must be run with at least python3.7
 - all dependencies must be install with `python3 -m pip install -r requirements.txt`.

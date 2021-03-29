@@ -5,13 +5,13 @@ from EZPaginator import Paginator
 class Expander(Paginator):
     def __init__(self, bot, message, contents=None, embeds=None, timeout=60, only=None):
         super().__init__(bot, message, contents=contents, embeds=embeds, timeout=timeout, use_extend=False, only=only)
-        self.reactions = ["⬆️", "⬇️"]
+        self.basic_emojis = ["⬆️", "⬇️"]
     
     async def pagination(self, emoji):
-        
-        if str(emoji) == "⬇️":
+
+        if str(emoji) == "⬆️":
             await self.go_first()
-        elif str(emoji) == "⬆️":
+        elif str(emoji) == "⬇️":
             await self.go_last()
     
     async def start(self):
@@ -21,12 +21,12 @@ class Expander(Paginator):
             try:
                 add_reaction = asyncio.ensure_future(
                     self.bot.wait_for(
-                        "raw_reaction_add", check=self.emoji_checker
+                        "raw_reaction_add", check=self.emoji_check
                     )
                 )
                 remove_reaction = asyncio.ensure_future(
                     self.bot.wait_for(
-                        "raw_reaction_remove", check=self.emoji_checker
+                        "raw_reaction_remove", check=self.emoji_check
                     )
                 )
 

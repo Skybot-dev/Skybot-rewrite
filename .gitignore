@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 config.json
+emojis.json
 settings.json

@@ -1,5 +1,7 @@
 from discord.ext import commands
 from discord.ext.commands.context import Context
+
+from utils.expander import Expander
 from utils.util import get_uuid_profileid
 from utils.skypy import skypy, exceptions
 from utils.skypy.constants import skill_icons
@@ -142,17 +144,24 @@ class Player(commands.Cog):
 
         return embed
 
-    async def get_networth_embed(self, ctx, player: skypy.Player):
+    async def get_networth_embeds(self, ctx, player: skypy.Player):
         description = ""
         networth_elements = {"armor": "Armour", "wardrobe_inventory": "Wardrobe", "inventory": "Inventory",
                              "enderchest": "Ender Chest", "talisman_bag": "Talisman Bag", "fishing_bag": "Fishing Bag",
                              "quiver": "Quiver", "potion_bag": "Potion Bag", "pets": "Pets", "purse": "Purse Balance", "bank": "Bank Balance",
-                             "slayers": "Slayer Spend"}
-        for inventory in networth_elements:
-            description += f"**{networth_elements[inventory]}** - {round(player.networth[inventory]):,}\n"
+                             }
         embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} estimated networth on {player.profile_name}").set_made_with_love_footer()
+        detailed_nw_embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} estimated networth on {player.profile_name}").set_made_with_love_footer()
+        for inventory in networth_elements:
+            description += f"**{self.bot.custom_emojis.get('inventories', {}).get(inventory, '')}{networth_elements[inventory]}** - {round(player.networth[inventory]):,}\n"
+            if inventory in player.detailed_networth:
+                detailed_nw_embed.add_field(name=f"{self.bot.custom_emojis.get('inventories', {}).get(inventory, '')}{networth_elements[inventory]} - {round(player.networth[inventory]):,}",
+                                            value=player.detailed_networth[inventory].replace('<recomb>', self.bot.custom_emojis.get('misc', {}).get('recombobulator', '')) or "API disabled or no items",
+                                            inline=False)
         embed.add_field(name=f"**Total Networth** - {round(player.networth['total']):,}", value=description, inline=False)
-        return embed
+        detailed_nw_embed.description = f"**Total Networth** - {round(player.networth['total']):,}"
+        detailed_nw_embed.set_thumbnail(url=player.avatar())
+        return [embed, detailed_nw_embed]
 
     async def get_slayer_embed(self, ctx, player : skypy.Player):
         player.load_skills_slayers(False)
@@ -162,7 +171,7 @@ class Player(commands.Cog):
         slayerNames = {"zombie": "Revenent Horror", "spider": "Tarantula Broodfather", "wolf": "Sven Packmaster"}
         embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} slayer stats on {player.profile_name}").set_requested_by_footer()
         for slayer in player.slayers:
-            embed.add_field(name=f"{slayerNames[slayer]}\nLEVEL {player.slayers[slayer]}", value=f"{player.slayers_needed[slayer]:,} XP\nto next level")
+            embed.add_field(name=f"{self.bot.custom_emojis.get('slayers', {}).get(slayer, '')}{slayerNames[slayer]}\nLEVEL {player.slayers[slayer]}", value=f"{player.slayers_needed[slayer]:,} XP\nto next level")
         for slayer in player.slayers:
             string = ''
             for i, bossLevel in enumerate(player.slayer_boss_kills[slayer]):
@@ -250,8 +259,9 @@ class Player(commands.Cog):
             return await ctx.send(f"An error occurred, perhaps this user has not played skyblock.")
         if not player: return
         async with ctx.typing():
-            embed = await self.get_networth_embed(ctx, player)
-            await ctx.send(embed=embed)
+            embeds = await self.get_networth_embeds(ctx, player)
+            msg = await ctx.send(embed=embeds[0])
+            await Expander(self.bot, msg, embeds=embeds, timeout=120, only=ctx.author).start()
 
     @commands.command(name="skills", description="Shows you Skyblock skill levels and xp.", usage="[username] ([profile])", aliases=["skill", "sk"])
     async def skills(self, ctx, uname=None, profile=None):

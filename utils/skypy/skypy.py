@@ -1123,10 +1123,12 @@ class Player(ApiInterface):
 				if data.status == 200:
 					self.stats = json["profiles"][self.profile]["data"]["stats"]
 					self.networth = json["profiles"][self.profile]["networth"]
-					self.networth["total"] += self.bank_balance + self.purse + self.slayer_total_spend
+					self.networth["total"] += self.bank_balance + self.purse
 					self.networth["purse"] = self.purse
 					self.networth["bank"] = self.bank_balance
-					self.networth["slayers"] = self.slayer_total_spend
+					self.detailed_networth = json["profiles"][self.profile]["detailed_networth"]
+					self.detailed_networth["purse"] = f"→ balance - {round(self.purse):,}"
+					self.detailed_networth["bank"] = f"→ balance - {round(self.bank_balance):,}"
 					return True
 		except aiohttp.ClientResponseError:
 			return False

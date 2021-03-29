@@ -26,6 +26,7 @@ class Skybot(commands.AutoShardedBot):
         self.db_client = init_client(self.loop)
         if self.db_client: logger.info("Connected to Database.")
         self.config = get_config()
+        self.custom_emojis = get_config("emojis")
         if self.config["trello"]["enabled"]:
             self.trello_client, self.trello_board = trelloinit(self.config)
         self.admin_db = self.db_client["management"]
