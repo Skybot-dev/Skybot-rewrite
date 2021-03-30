@@ -261,7 +261,7 @@ class Player(commands.Cog):
         async with ctx.typing():
             embeds = await self.get_networth_embeds(ctx, player)
             msg = await ctx.send(embed=embeds[0])
-            await Expander(self.bot, msg, embeds=embeds, timeout=120, only=ctx.author).start()
+        await Expander(self.bot, msg, embeds=embeds, timeout=120, only=ctx.author).start()
 
     @commands.command(name="skills", description="Shows you Skyblock skill levels and xp.", usage="[username] ([profile])", aliases=["skill", "sk"])
     async def skills(self, ctx, uname=None, profile=None):
