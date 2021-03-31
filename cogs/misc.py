@@ -22,11 +22,11 @@ class Misc(commands.Cog, name="Misc"):
 
     @commands.command(name="status", description="Checks the status of the bot.")
     async def status(self, ctx):
-        statuses = {"stats_api" : [False, ""], "slothpixel" : [False, ""], "hypixel_api" : [False, ""], "db" : [False, ""]}
+        statuses = {"stats_api" : [False, ""], "slothpixel" : [False, ""], "hypixel_api" : [False, ""], "database" : [False, ""]}
 
         db_status = await self.bot.db_client["admin"].command({"ping" : 1})
         if db_status["ok"] == 1:
-            statuses["db"][0] = True
+            statuses["database"][0] = True
 
         try:
             await skypy.Player(keys=self.bot.api_keys, uuid="930aa39d62e0457fa0117c0d70e6ed43")
