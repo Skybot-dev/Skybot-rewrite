@@ -1,11 +1,13 @@
 import discord
+import aiohttp
 from utils.util import is_staff
 from discord.ext import commands, tasks
 from utils.embed import Embed
+from utils.skypy import skypy
 from bson.objectid import ObjectId
 from EZPaginator import Paginator
-import time
-from datetime import datetime
+from time import time
+from datetime import datetime, timedelta
 
 class Misc(commands.Cog, name="Misc"):
     """Miscellaneous commands"""
@@ -17,6 +19,53 @@ class Misc(commands.Cog, name="Misc"):
             self.my_lists = self.my_board.list_lists()
             self.trelloEnabled = True
         self.stats.start()
+
+    @commands.command(name="status", description="Checks the status of the bot.")
+    async def status(self, ctx):
+        statuses = {"stats_api" : [False, ""], "slothpixel" : [False, ""], "hypixel_api" : [False, ""], "db" : [False, ""]}
+
+        db_status = await self.bot.db_client["admin"].command({"ping" : 1})
+        if db_status["ok"] == 1:
+            statuses["db"][0] = True
+
+        try:
+            await skypy.Player(keys=self.bot.api_keys, uuid="930aa39d62e0457fa0117c0d70e6ed43")
+            statuses["hypixel_api"][0] = True
+        except Exception as e:
+            statuses["hypixel_api"][1] = e
+
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5), raise_for_status=True) as s:
+                async with s.get("https://api.slothpixel.me/api/health") as resp:
+                    if resp.status == 200:
+                        statuses["slothpixel"][0] = True
+                    else:
+                        statuses["slothpixel"][1] = resp.status
+        except Exception as e:
+            statuses["slothpixel"][1] = e
+
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5), raise_for_status=True) as s:
+                async with s.get(self.bot.stats_api + "/930aa39d62e0457fa0117c0d70e6ed43?key=" + self.bot.api_keys[0]) as resp:
+                    if resp.status == 200 and (await resp.json())["success"]:
+                        statuses["stats_api"][0] = True
+                    else:
+                        statuses["stats_api"][1] = f"{resp.status} + {await resp.json()}"
+        except Exception as e:
+            statuses["stats_api"][1] = e
+
+
+        embed = Embed(title="Status", bot=self.bot, user=ctx.author)
+        await embed.set_made_with_love_footer()
+        embed.add_field(name="Uptime", value=f"{timedelta(seconds=round(time() - self.bot.start_time))}")
+        embed.add_field(name="Bot Websocket Latency", value="\n".join([f"Shard ID: {shard[0]} Latency: {round(shard[1] * 1000)}ms" for shard in self.bot.latencies] + [(f"Average Latency: {round(self.bot.latency * 1000)}ms")]), inline=False)
+        for name, status in statuses.items():
+            if status[0] == True:
+                embed.add_field(name=name.replace("_", " ").capitalize(), value="Working", inline=False)
+                continue
+            print(status[1])
+            embed.add_field(name=name.replace("_", " ").capitalize(), value="Not working\nError: " + str(status[1]), inline=False)
+        await ctx.send(embed=embed)
     
     @commands.command(name="support", description="Support Server link", aliases=["sup"], usage="")
     async def support(self, ctx):

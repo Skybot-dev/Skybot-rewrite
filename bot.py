@@ -1,4 +1,5 @@
 import os
+from time import time
 from loguru import logger
 import traceback
 import discord
@@ -54,6 +55,7 @@ class Skybot(commands.AutoShardedBot):
         self.slash = SlashCommand(self, sync_commands=True)
 
         self.load_cogs()
+        self.start_time = time()
 
     async def cache_guild_chunk(self, guild: discord.Guild):
         if not guild.chunked:
