@@ -313,7 +313,7 @@ async def fetch_uuid_uname(uname_or_uuid, _depth=0):
 		if e.status == 429:
 			await asyncio.sleep(15)
 			if _depth <= 5:
-				return fetch_uuid_uname(uname_or_uuid, _depth + 1)
+				return await fetch_uuid_uname(uname_or_uuid, _depth + 1)
 			else:
 				raise ExternalAPIError('You are being ratelimited by https://api.mojang.com') from None
 		else:

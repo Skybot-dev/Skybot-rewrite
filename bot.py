@@ -101,7 +101,13 @@ class Skybot(commands.AutoShardedBot):
         await self.update_blacklist()
         logger.info("Skybot ready.")
         self.add_check(self.not_blacklisted)
-        
+
+    async def process_commands(self, message):
+        ctx = await self.get_context(message)
+        if not ctx.command or (message.author.bot and ctx.command.name not in ("status")):
+            return
+        await self.invoke(ctx)
+
 
     async def on_message(self, message):
         if not self.is_ready() : return
