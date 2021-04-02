@@ -79,10 +79,15 @@ class SlashCmds(commands.Cog):
                                                                                                                                       manage_commands.create_option("profile", "Profile name (There are more profile names then suggested!)", SlashCommandOptionType.STRING, False, choices=profiles)])
     async def dungeons(self, ctx : SlashContext, username=None, profile=None):
         await ctx.defer()
-        player = await self.make_player(ctx=ctx, uname=username, profile=profile)
+        player = await self.make_player(ctx, username, profile)
         if not player: return
-        embed = await Player.get_dungeon_embed(self, ctx=ctx, player=player)
-        await ctx.send(embeds=[embed])
+        embeds = await Player.get_dungeon_embeds(self, ctx, player)
+        if isinstance(embeds, Embed):
+            return await ctx.send(embed=embeds)
+        elif len(embeds) == 1:
+            return await ctx.send(embed=embeds[0])
+        msg = await ctx.send(embed=embeds[0])
+        await Paginator(self.bot, msg, embeds=embeds, timeout=60, only=ctx.author).start()
         
     @cog_ext.cog_slash(name="networth", description="View a more in-depth breakdown of your estimated networth.", options=[manage_commands.create_option("username", "Minecraft username/Discord user if linked.", SlashCommandOptionType.STRING, False), 
                                                                                                                                       manage_commands.create_option("profile", "Profile name (There are more profile names then suggested!)", SlashCommandOptionType.STRING, False, choices=profiles)])

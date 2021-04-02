@@ -832,19 +832,36 @@ class Player(ApiInterface):
 		return self
 
 	def load_dungeon_stats(self):
+		pages = 0
 		try:
-			catacomb_stats = self._api_data["members"][self.uuid]["dungeons"]["dungeon_types"]["catacombs"]
 			player_class_stats = self._api_data["members"][self.uuid]["dungeons"]["player_classes"]
-			self.catacomb_times_floor_played = catacomb_stats["times_played"]
-			self.catacomb_fasted_times = catacomb_stats["fastest_time"]
-			self.catacomb_level = level_from_xp_table(catacomb_stats["experience"], catacomb_level_requirements)
-			self.catacomb_best_scores = catacomb_stats["best_score"]
-			self.catacomb_mobs_killed = catacomb_stats["mobs_killed"]
-			del self.catacomb_times_floor_played["0"], self.catacomb_fasted_times["0"], self.catacomb_best_scores["0"], self.catacomb_mobs_killed["0"]
-			self.catacomb_class_levels = {z.capitalize() :level_from_xp_table(player_class_stats[z]["experience"], catacomb_level_requirements) for z in player_class_stats}
-			return self
-		except (KeyError, TypeError):
-			return None
+			base_dungeon_stats = self._api_data["members"][self.uuid]["dungeons"]
+			self.catacomb_class_levels = {
+				z.capitalize(): level_from_xp_table(player_class_stats[z]["experience"], catacomb_level_requirements)
+				for z in player_class_stats}
+			self.catacomb_times_floor_played = {}
+			self.catacomb_fasted_times = {}
+			self.catacomb_level = level_from_xp_table(base_dungeon_stats["dungeon_types"]["catacombs"]["experience"],
+																	catacomb_level_requirements)
+			self.catacomb_best_scores = {}
+			self.catacomb_mobs_killed = {}
+			self.dungeon_types = []
+			for dungeon_type in ("catacombs",
+								 "master_catacombs"):
+				try:
+					catacomb_stats = base_dungeon_stats["dungeon_types"][dungeon_type]
+					self.catacomb_times_floor_played[dungeon_type] = catacomb_stats["tier_completions"]
+					self.catacomb_fasted_times[dungeon_type] = catacomb_stats["fastest_time"]
+					self.catacomb_best_scores[dungeon_type] = catacomb_stats["best_score"]
+					self.catacomb_mobs_killed[dungeon_type] = catacomb_stats["mobs_killed"]
+					self.dungeon_types.append(dungeon_type)
+					pages += 1
+				except (KeyError, TypeError) as e:
+					pass
+			del self.catacomb_fasted_times["catacombs"]["0"], self.catacomb_times_floor_played["catacombs"]["0"], self.catacomb_best_scores["catacombs"]["0"], self.catacomb_mobs_killed["catacombs"]["0"]
+		except KeyError:
+			pass
+		return pages
 
 
 	def load_skills_slayers(self, raise_on_double=True):

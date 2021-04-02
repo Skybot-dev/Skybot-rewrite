@@ -70,22 +70,26 @@ class Player(commands.Cog):
         return player
 
 
-    async def get_dungeon_embed(self, ctx, player: skypy.Player):
-        if not player.load_dungeon_stats():
+    async def get_dungeon_embeds(self, ctx, player: skypy.Player):
+        pages = player.load_dungeon_stats()
+        if not pages:
             return await Embed(self.bot, ctx.author, title="Error", description="Couldn't find any dungeon stats for this player.").set_requested_by_footer()
         class_emojis = {"healer": ":heart:", "mage": ":sparkler:", "berserk": ":crossed_swords:", "archer": ":bow_and_arrow:", "tank": ":shield:"}
-        embed = Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} Catacombs stats on {player.profile_name}", description=f"**Catacombs level: {player.catacomb_level[0]}\nXP to next level: {round(player.catacomb_level[1])}**")
-        embed.add_field(name=":arrows_counterclockwise:  Times played", value="\n".join([f"**Floor {z}:** {round(player.catacomb_times_floor_played[z])}" for z in player.catacomb_times_floor_played]), inline=False)
-        embed.add_field(name=":clock1:  Fastest times", value="\n".join([f"**Floor {z}:** {timedelta(seconds=round(player.catacomb_fasted_times[z] / 1000))}" for z in player.catacomb_fasted_times]), inline=True)
-        embed.add_field(name=":1234:  Best scores", value="\n".join([f"**Floor {z}:** {round(player.catacomb_best_scores[z]):,}" for z in player.catacomb_best_scores]), inline=True)
-        embed.add_field(name=":drop_of_blood:  Mobs killed", value="\n".join([f"**Floor {z}:** {round(player.catacomb_mobs_killed[z])}" for z in player.catacomb_mobs_killed]), inline=True)
-        embed.add_field(name=u"\u200b", value="**Class Levels**", inline=False)
-        for _class in player.catacomb_class_levels:
-            embed.add_field(name=f"{class_emojis[_class.lower()]}  {_class}", value=f"**Level:** {player.catacomb_class_levels[_class][0]}\n**XP to next level:** {round(player.catacomb_class_levels[_class][1])}\n", inline=True)
-        embed.add_field(name=u"\u200b", value=u"\u200b", inline=True)
-        embed.set_thumbnail(url=player.avatar())
-        await embed.set_made_with_love_footer()
-        return embed
+        embeds = []
+        for dungeon_type in player.dungeon_types:
+            embed = Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} {dungeon_type.replace('_', ' ').capitalize()} stats on {player.profile_name}", description=f"**Catacombs level: {player.catacomb_level[0]}\nXP to next level: {round(player.catacomb_level[1])}**")
+            embed.add_field(name=":arrows_counterclockwise:  Completions", value="\n".join([f"**Floor {z}:** {round(player.catacomb_times_floor_played[dungeon_type][z])}" for z in player.catacomb_times_floor_played[dungeon_type]]), inline=False)
+            embed.add_field(name=":clock1:  Fastest times", value="\n".join([f"**Floor {z}:** {timedelta(seconds=round(player.catacomb_fasted_times[dungeon_type][z] / 1000))}" for z in player.catacomb_fasted_times[dungeon_type]]), inline=True)
+            embed.add_field(name=":1234:  Best scores", value="\n".join([f"**Floor {z}:** {round(player.catacomb_best_scores[dungeon_type][z]):,}" for z in player.catacomb_best_scores[dungeon_type]]), inline=True)
+            embed.add_field(name=":drop_of_blood:  Mobs killed", value="\n".join([f"**Floor {z}:** {round(player.catacomb_mobs_killed[dungeon_type][z])}" for z in player.catacomb_mobs_killed[dungeon_type]]), inline=True)
+            embed.add_field(name=u"\u200b", value="**Class Levels**", inline=False)
+            for _class in player.catacomb_class_levels:
+                embed.add_field(name=f"{class_emojis[_class.lower()]}  {_class}", value=f"**Level:** {player.catacomb_class_levels[_class][0]}\n**XP to next level:** {round(player.catacomb_class_levels[_class][1])}\n", inline=True)
+            embed.add_field(name=u"\u200b", value=u"\u200b", inline=True)
+            embed.set_thumbnail(url=player.avatar())
+            await embed.set_made_with_love_footer()
+            embeds.append(embed)
+        return embeds
 
 
     async def get_skills_embed(self, ctx, player):
@@ -248,8 +252,13 @@ class Player(commands.Cog):
         player = await self.make_player(ctx, uname, profile)
         if not player: return
         async with ctx.typing():
-            embed = await self.get_dungeon_embed(ctx, player)
-            await ctx.send(embed=embed)
+            embeds = await self.get_dungeon_embeds(ctx, player)
+            if isinstance(embeds, Embed):
+                return await ctx.send(embed=embeds)
+            elif len(embeds) == 1:
+                return await ctx.send(embed=embeds[0])
+            msg = await ctx.send(embed=embeds[0])
+        await Paginator(self.bot, msg, embeds=embeds, timeout=60, only=ctx.author).start()
 
     @commands.command(name="networth", description="View a more in-depth breakdown of your estimated networth.", usage="[username] ([profile])", aliases=["nw"])
     async def networth(self, ctx, uname=None, profile=None):
