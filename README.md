@@ -19,7 +19,7 @@ Rewrite of the Hypixel Skybot.
 ## Hosting
 
 ### Config.json
-config.json must be filled out correctly in order for the bot to function properly.
+Config.json must be filled out correctly in order for the bot to function properly.
 ```javascript
 {
     "token" : "", // put your bot token from discordapp.com/developers here (required)
@@ -62,8 +62,8 @@ config.json must be filled out correctly in order for the bot to function proper
 `emojis.json` must be filled out with the contents of `emojis-template.json`
 Each value can be either an emoji (as unicode or discord `<:name:id>` format) or any string. If you do not wish to use emojis, you can leave each value as an empty string.
 ### requirements
-- the bot must be run with at least python3.7
-- all dependencies must be install with `python3 -m pip install -r requirements.txt`.
+- The bot must be run with at least python3.7
+- All dependencies must be install with `python3 -m pip install -r requirements.txt`.
 ---
 # Contributors:
 - [@lolieg](https://github.com/lolieg) - Lead developer and project owner
@@ -71,5 +71,5 @@ Each value can be either an emoji (as unicode or discord `<:name:id>` format) or
 - [@juli324](https://github.com/Juli324)- server administrator
 ##### If you feel that you have something to add, feel free to fork the repository and open a pull request.
 # Links
-- join the [support server](https://discord.gg/7fPv2uY2Tf) on discord
-- vote for the bot on [top.gg](https://top.gg/bot/630106665387032576)
+- Join the [support server](https://discord.gg/7fPv2uY2Tf) on discord.
+- Vote for the bot on [top.gg](https://top.gg/bot/630106665387032576)
