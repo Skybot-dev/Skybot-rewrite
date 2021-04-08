@@ -18,8 +18,8 @@ Rewrite of the Hypixel Skybot.
 ---
 ## Hosting
 
-### Config.json
-Config.json must be filled out correctly in order for the bot to function properly.
+### config.json
+config.json must be filled out correctly in order for the bot to function properly.
 ```javascript
 {
     "token" : "", // put your bot token from discordapp.com/developers here (required)
