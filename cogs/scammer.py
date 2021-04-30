@@ -77,79 +77,79 @@ class scammer(commands.Cog, name="Scammer"):
                 return
     
             x = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
-            if not x:
-                y = await self.bot.scammer_db["reports"].find_one({"_id": uuid, "status": "pending"})
-                if not y:
-                    await ctx.author.send("Please *briefly* describe what happened, not in detail (eg. `scammed AOTD` or `coopscammed 15 mil`)")
-                    try:
-                        quick_reason = await self.bot.wait_for('message', timeout=120.0, check=check)
-                    except asyncio.TimeoutError:
-                        await ctx.author.send("Report timed out")
-                        return
-                    report_embed = discord.Embed(title=f"{str(player_msg.content)}\n{ctx.author.id}", color=0x00ffff)
-                    report_embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-                    report_embed.add_field(name="Reason:", value=str(quick_reason.content), inline=False)
-                    await ctx.author.send("Please now describe in detail what happened, and make sure to give the events in the correct order")
-                    try:
-                        descriptive_reason = await self.bot.wait_for('message', timeout=300.0, check=check)
-                    except asyncio.TimeoutError:
-                        await ctx.author.send("Report timed out")
-                        return
-                    report_embed.add_field(name="description:", value=str(descriptive_reason.content), inline=False)
-                    await ctx.author.send("Please send any photographic evidence that you have. This could be in-game screenshots, screenshots of chat-logs or links to video proof. You can submit up to 5 pieces of proof and type `done` if you need fewer.")
-                    embeds.append(report_embed)
-        async def send_embeds(embeds):
-            if len(embeds) == 1:
-                return await ctx.author.send("You must include evidence for a report. Report cancelled")
-            await ctx.author.send("Do you wish for the report to be anonymous? Anonymous reports will still have the same data saved, but your name will not be publically credited for reporting the scammer. Full credit is given to non-anonymous reports. `Y/N` (replying with anything but 'no' or 'n' will result in an anonymous report")
+            if x:
+                return await ctx.author.send("This user is already on the scammer list!")
+            await ctx.author.send("Please *briefly* describe what happened, not in detail (eg. `scammed AOTD` or `coopscammed 15 mil`)")
             try:
-                anon = await self.bot.wait_for('message', timeout=300, check=check)
-            except asyncio.TimeoutError:
-                await ctx.author.send("Report timed out")
-            if anon.content.lower() == "n" or anon.content.lower() == "no":
-                anonymous = False
-            else:
-                anonymous = True
-            await ctx.author.send("We want to remind you that we cannot accept reports that don't have any proof. Some examples that count as proof: Minecraft- and/or Desktop Screenshots, video recordings (like Shadowplay, if you don't have an NVIDIA GPU use OBS for recordings) on YouTube, not a cropped screenshot that just shows someone left the party. These can be taken out of context very easily. Oh, and please stop filing unnecessary reports! **__WE WILL REJECT EVERY REPORT WITHOUT ANY PROOF! WE BLACKLIST USERS THAT MAKE FAKE REPORTS AND/OR TROLL REPORTS__**\n**TLDR;**\nProvide good proof when reporting someone via !scammer\nDon't file troll reports\n\nTo submit this request reply `send`")
-            try:
-                confirmation = await self.bot.wait_for('message', timeout=30.0, check=check)
-                if confirmation.content.lower() == "send":
-                    if not isinstance(ctx.channel, discord.channel.DMChannel):
-                        report = await self.bot.scammer_db["reports"].insert_one({"name": str(player_msg.content), "uuid": uuid, "reason": quick_reason.content, "status": "pending", "reporter": str(ctx.author), "reporter_id": ctx.author.id, "guild": ctx.guild.id, "anonymous": anonymous})
-                    else:
-                        report = await self.bot.scammer_db["reports"].insert_one({"name": str(player_msg.content), "uuid": uuid, "reason": quick_reason.content, "status": "pending", "reporter": str(ctx.author), "reporter_id": ctx.author.id, "anonymous": anonymous})
-                    report_id = str(report.inserted_id)
-                    report_embed.description = f"ID: {report_id}\n"
-                    for embed in embeds:
-                        await report_channel.send(embed=embed)
-                    await report_channel.send("-------------------------")
-                    await ctx.author.send(f"Your report has been sent. You will be told whether your report has been confirmed or not. To check its status, use `check_report [report id]`. Your unique report id for this report is {report_id}")
-                    return
-                else:
-                    await ctx.author.send("Report cancelled")
-                    return
+                quick_reason = await self.bot.wait_for('message', timeout=120.0, check=check)
             except asyncio.TimeoutError:
                 await ctx.author.send("Report timed out")
                 return
-        
-        async def get_embed(i, embeds):
-            while i < 5:
+            report_embed = discord.Embed(title=f"{str(player_msg.content)}\n{ctx.author.id}", color=0x00ffff)
+            report_embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            report_embed.add_field(name="Reason:", value=str(quick_reason.content), inline=False)
+            await ctx.author.send("Please now describe in detail what happened, and make sure to give the events in the correct order")
+            try:
+                descriptive_reason = await self.bot.wait_for('message', timeout=300.0, check=check)
+            except asyncio.TimeoutError:
+                await ctx.author.send("Report timed out")
+                return
+            report_embed.add_field(name="description:", value=str(descriptive_reason.content), inline=False)
+            await ctx.author.send("Please send any photographic evidence that you have. This could be in-game screenshots, screenshots of chat-logs or links to video proof. You can submit up to 5 pieces of proof and type `done` if you need fewer.")
+            embeds.append(report_embed)
+
+        for i in range(1, 6):
+            try:
+                proof = await self.bot.wait_for('message', timeout=300.0, check=check)
+            except asyncio.TimeoutError:
+                await ctx.author.send("Report timed out")
+                return
+            if proof.content.lower() == "done" or i == 5:
+                if i == 1:
+                    return await ctx.author.send("You must include evidence for a report. Report cancelled.")
+                await ctx.author.send(
+                    "Do you wish for the report to be anonymous? Anonymous reports will still have the same data saved, but your name will not be publically credited for reporting the scammer. Full credit is given to non-anonymous reports. `Y/N` (replying with anything but 'no' or 'n' will result in an anonymous report)")
                 try:
-                    proof = await self.bot.wait_for('message', timeout=300.0, check=check)
+                    anon = await self.bot.wait_for('message', timeout=300, check=check)
+                except asyncio.TimeoutError:
+                    await ctx.author.send("Report timed out")
+                anonymous = anon.content.lower() not in ("n", "no")
+                await ctx.author.send(
+                    "We want to remind you that we cannot accept reports that don't have any proof. Some examples that count as proof: Minecraft- and/or Desktop Screenshots, video recordings (like Shadowplay, if you don't have an NVIDIA GPU use OBS for recordings) on YouTube, not a cropped screenshot that just shows someone left the party. These can be taken out of context very easily. Oh, and please stop filing unnecessary reports! **__WE WILL REJECT EVERY REPORT WITHOUT ANY PROOF! WE BLACKLIST USERS THAT MAKE FAKE REPORTS AND/OR TROLL REPORTS__**\n**TLDR;**\nProvide good proof when reporting someone via !scammer\nDon't file troll reports\n\nTo submit this request reply `send`")
+                try:
+                    confirmation = await self.bot.wait_for('message', timeout=30.0, check=check)
+                    if confirmation.content.lower() == "send":
+                        if not isinstance(ctx.channel, discord.channel.DMChannel):
+                            report = await self.bot.scammer_db["reports"].insert_one(
+                                {"name": str(player_msg.content), "uuid": uuid, "reason": quick_reason.content,
+                                 "status": "pending", "reporter": str(ctx.author), "reporter_id": ctx.author.id,
+                                 "guild": ctx.guild.id, "anonymous": anonymous})
+                        else:
+                            report = await self.bot.scammer_db["reports"].insert_one(
+                                {"name": str(player_msg.content), "uuid": uuid, "reason": quick_reason.content,
+                                 "status": "pending", "reporter": str(ctx.author), "reporter_id": ctx.author.id,
+                                 "anonymous": anonymous})
+                        report_id = str(report.inserted_id)
+                        report_embed.description = f"ID: {report_id}\n"
+                        for embed in embeds:
+                            await report_channel.send(embed=embed)
+                        await report_channel.send("-------------------------")
+                        await ctx.author.send(
+                            f"Your report has been sent. You will be told whether your report has been confirmed or not.")
+                        return
+                    else:
+                        await ctx.author.send("Report cancelled")
+                        return
                 except asyncio.TimeoutError:
                     await ctx.author.send("Report timed out")
                     return
-                if proof.content.lower() == "done":
-                    return await send_embeds(embeds)
-                embed = discord.Embed(title=f"Evidence {i}:", color=0x0000ff)
-                if not proof.attachments:
-                    embed.description = proof.content
-                else:    
-                    evurl = proof.attachments[0].url
-                    embed.set_image(url=evurl)
-                embeds.append(embed)
-            return await send_embeds(embeds)      
-        await get_embed(0, embeds)
+            embed = discord.Embed(title=f"Evidence {i}:", color=0x0000ff)
+            if not proof.attachments:
+                embed.description = proof.content
+            else:
+                evurl = proof.attachments[0].url
+                embed.set_image(url=evurl)
+            embeds.append(embed)
 
     @scammer.command(name="check", description="check a Minecraft username against our scammer list", usage="[username]")
     async def check(self, ctx, username:str):
