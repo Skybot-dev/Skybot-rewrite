@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 from datetime import datetime
 import aiohttp
 import asyncio
+import json
 
 class scammer(commands.Cog, name="Scammer"):
     """Miscellaneous commands"""
@@ -154,13 +155,26 @@ class scammer(commands.Cog, name="Scammer"):
     @scammer.command(name="check", description="check a Minecraft username against our scammer list", usage="[username]")
     async def check(self, ctx, username:str):
         name, uuid = await fetch_uuid_uname(username)
+        cs = aiohttp.ClientSession()
+        jerry_resp = await cs.get("https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json")
+        jerry_data = await json.loads(await jerry_resp.text())
         if not uuid:
             return await ctx.send("Could not find that username")
         scammer = await self.bot.scammer_db["scammer_list"].find_one({"_id": uuid})
-        if not scammer:
-            embed = Embed(title="Safe", description="This user is not in our database as a scammer. Proceed with caution", bot=self.bot, user=ctx.author)
+        if not scammer and uuid not in jerry_data:
+            embed = Embed(title="Safe", description="This user is not in our database or the jerry database as a scammer. Proceed with caution", bot=self.bot, user=ctx.author)
             embed.color = 0x00FF00
             await embed.set_requested_by_footer()
+            return await ctx.send(embed=embed)
+        if uuid in jerry_data:
+            scam = jerry_data[uuid]
+            embed = Embed(title="SCAMMER", description="This user has been found on the Jerry Scammer List! Do not trade with this user!")
+            embed.add_field(name="Details", value=f"""**Reason:** {scam['reason']}
+**User's UUID:** {uuid}
+**DISCLAIMER:** This report has not been handled by us! This report has been provided by SkyBlockZ/Jerry the Skyblock Bot so it may not be 100% accurate!""")
+            embed.set_author(name=f"JERRY SCAMMER LIST", url="https://raw.githubusercontent.com/skyblockz/pricecheckbot/master/scammer.json")
+            embed.set_footer(text=f"Added by: {scam[uuid]['operated_staff']}")
+            embed.color = 0xff0000
             return await ctx.send(embed=embed)
         if scammer["report_id"] and not scammer["anonymous"]:
             report = await self.bot.scammer_db["reports"].find_one({"_id": scammer["report_id"]})
