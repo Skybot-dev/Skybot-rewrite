@@ -387,7 +387,7 @@ class ApiInterface:
 				await asyncio.sleep(1.5)
 				return await self.__call_api__(api, **kwargs)
 
-			elif e.code == 500:
+			elif e.code >= 500:
 				raise HypixelError(f'Hypixel\'s servers could not complete your request')
 
 			else:
@@ -1147,7 +1147,7 @@ class Player(ApiInterface):
 					self.detailed_networth["purse"] = f"→ balance - {round(self.purse):,}"
 					self.detailed_networth["bank"] = f"→ balance - {round(self.bank_balance):,}"
 					return True
-		except aiohttp.ClientResponseError:
+		except (aiohttp.ClientResponseError, asyncio.TimeoutError):
 			return False
 
 		
