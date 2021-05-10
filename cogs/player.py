@@ -153,6 +153,7 @@ class Player(commands.Cog):
         networth_elements = {"armor": "Armour", "wardrobe_inventory": "Wardrobe", "inventory": "Inventory",
                              "enderchest": "Ender Chest", "talisman_bag": "Talisman Bag", "fishing_bag": "Fishing Bag",
                              "quiver": "Quiver", "potion_bag": "Potion Bag", "pets": "Pets", "purse": "Purse Balance", "bank": "Bank Balance",
+                             "backpacks": "Backpacks",
                              }
         embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} estimated networth on {player.profile_name}").set_made_with_love_footer()
         detailed_nw_embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} estimated networth on {player.profile_name}").set_made_with_love_footer()
