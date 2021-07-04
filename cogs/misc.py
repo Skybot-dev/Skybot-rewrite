@@ -97,7 +97,7 @@ class Misc(commands.Cog, name="Misc"):
             card_id = self.my_lists[0].add_card(answer).id
         else:
             card_id = None
-        suggestion_doc = await self.bot.admin_db["suggestions"].insert_one({"status": "submitted", "user": ctx.author.id, "content": answer, "message": msg.id, "datetime": time.time(), "card": card_id})
+        suggestion_doc = await self.bot.admin_db["suggestions"].insert_one({"status": "submitted", "user": ctx.author.id, "content": answer, "message": msg.id, "datetime": time(), "card": card_id})
         await msg.edit(embed=msg.embeds[0].set_footer(text=f"ID: {str(suggestion_doc.inserted_id)}"))
     
     async def view_suggestion(self, ctx, id:str):
@@ -197,7 +197,7 @@ class Misc(commands.Cog, name="Misc"):
     @commands.check(is_staff)
     async def add(self, ctx, Type, version, description, bugs):
         await self.bot.admin_db["changelog"].update_one({"latest": True}, {"$set": {"latest": False}})
-        json_data = {"type": Type, "version": version, "bugs": bugs, "description": description, "date": time.time(), "latest": True}
+        json_data = {"type": Type, "version": version, "bugs": bugs, "description": description, "date": time(), "latest": True}
         await self.bot.admin_db["changelog"].insert_one(json_data)
         await ctx.send(embed=(await self.changelog_embed(ctx, json_data)))
     
