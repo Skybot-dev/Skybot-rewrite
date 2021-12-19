@@ -95,7 +95,7 @@ class scammer(commands.Cog, name="Scammer"):
                 await ctx.author.send("Report timed out")
                 return
             report_embed.add_field(name="description:", value=str(descriptive_reason.content), inline=False)
-            await ctx.author.send("Please send any photographic evidence that you have. This could be in-game screenshots, screenshots of chat-logs or links to video proof. You can submit up to 5 pieces of proof and type `done` if you need fewer.")
+            await ctx.author.send("Please send any photographic evidence that you have. This could be in-game screenshots or links to video proof. You can submit up to 5 pieces of proof and type `done` if you need fewer.")
             embeds.append(report_embed)
 
         for i in range(1, 6):
