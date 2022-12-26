@@ -173,7 +173,7 @@ class Player(commands.Cog):
         if not player.enabled_api["skills"]:
             return await Embed(self.bot, ctx.author, title="Error", description="Your skills API is disabled. Please enable it and try again.").set_requested_by_footer()
 
-        slayerNames = {"zombie": "Revenent Horror", "spider": "Tarantula Broodfather", "wolf": "Sven Packmaster"}
+        slayerNames = {"zombie": "Revenent Horror", "spider": "Tarantula Broodfather", "wolf": "Sven Packmaster", "enderman": "VoidGloom Seraph"}
         embed = await Embed(self.bot, ctx.author, title=f"{self.format_name(player.uname)} slayer stats on {player.profile_name}").set_requested_by_footer()
         for slayer in player.slayers:
             embed.add_field(name=f"{self.bot.custom_emojis.get('slayers', {}).get(slayer, '')}{slayerNames[slayer]}\nLEVEL {player.slayers[slayer]}", value=f"{player.slayers_needed[slayer]:,} XP\nto next level")
